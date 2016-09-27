@@ -92,7 +92,7 @@ void populate_field(grid* field, int people) {
 	
         person a_person;
         init_person(&a_person, x, y);
-        //add_person_to_grid(field, a_person);
+        add_person_to_grid(field, a_person);
     }
 }
 
