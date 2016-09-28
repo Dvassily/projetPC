@@ -18,14 +18,15 @@ EZConcurrency Project
 #define DEFAULT_EXIT_HEIGHT_WALL_2      16
 #define DEFAULT_WALL_1_X                0
 #define DEFAULT_WALL_2_X                111
-#define DEFAULT_PEOPLE_SIZE             2
+#define DEFAULT_PEOPLE_SIZE             4
 #define DEFAULT_MAX_PEOPLE_IN_GRID      512
 
 //Cell content type enum
 typedef enum {
     EMPTY,
     WALL,
-    PERSON
+    PERSON,
+    HOLE
 } cell_content_type;
 
 //Cell structure
@@ -35,6 +36,10 @@ typedef struct {
     cell_content_type content;
 } cell;
 
+typedef enum {
+    IN, OUT
+} person_status;
+
 /* Person structure
  Person is represented like this on a grid:
  _____
@@ -42,10 +47,10 @@ typedef struct {
  |_|_|
  The origin point of a person is located in the upper-left corner
  */
-
 typedef struct {
     int origin_x;
     int origin_y;
+    person_status status;
 } person;
 
 //Grid structure
@@ -61,6 +66,7 @@ void init_person(person* a_person, int x, int y);
 void add_person_to_grid(grid* my_grid, person a_person);
 void init_grid(grid* my_grid, int width, int height);
 void populate_field(grid* field, int people);
+int is_cell_empty(grid* my_grid, int x, int y);
 
 /*
 void set_cell_content(cell* my_cell, cell_content_type content);

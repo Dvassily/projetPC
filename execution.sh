@@ -1,2 +1,2 @@
 #!/bin/bash
-./executable.exe -t 0 -p 2
+./executable.exe -t 0 -p 1

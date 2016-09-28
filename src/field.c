@@ -1,3 +1,4 @@
+// TODO : Change functions body
 /*
     Elements.c contains all function needed to create a grid.
     How to init a grid:
@@ -10,6 +11,7 @@
         random_populate_grid(&simulation_grid, number_of_people);
 */
 
+#include <stdbool.h>
 #include "../inc/field.h"
 
 void init_cell(cell* my_cell, int x, int y, cell_content_type content){
@@ -47,27 +49,28 @@ void add_walls(grid* my_grid){
 }
 
 void init_grid(grid* my_grid, int width, int height){
-    //my_grid = (grid*)malloc (sizeof (grid));
     my_grid->height = height;
     my_grid->width = width;
     my_grid->person_count = 0;
-    for(int x=0; x<width; x++){
-        for(int y=0; y<height; y++){
+
+    for(int x = 0; x < width; x++){
+        for(int y = 0; y < height; y++){
             cell new_cell;
             init_cell(&new_cell, x, y, EMPTY);
             add_cell_to_grid(my_grid, x, y, new_cell);
         }
     }
+    
     add_walls(my_grid);
 }
 
-int is_available_coords(grid* my_grid, int x, int y){
+int is_cell_empty(grid* my_grid, int x, int y){
     if (x < 0 || x > my_grid->width - DEFAULT_PEOPLE_SIZE-1 ||
 	y < 0 || y > my_grid->height - DEFAULT_PEOPLE_SIZE - 1)
 	return -1;
     
     for (int i = x; i < x + DEFAULT_PEOPLE_SIZE; i++) {
-        for (int j = y; j < y + DEFAULT_PEOPLE_SIZE; j++) {
+	for (int j = y; j < y + DEFAULT_PEOPLE_SIZE; j++) {
             if (my_grid->matrix[i][j].content != EMPTY)
 		return -1;
         }
@@ -88,7 +91,7 @@ void populate_field(grid* field, int people) {
         do {
             x = rand() % (max_x - min_x + 1) + min_x;
             y = rand() % (max_y - min_y + 1) + min_y;
-        } while (is_available_coords(field, x, y) < 0);
+        } while (is_cell_empty(field, x, y) < 0);
 	
         person a_person;
         init_person(&a_person, x, y);
@@ -97,10 +100,10 @@ void populate_field(grid* field, int people) {
 }
 
 
-
 void init_person(person* a_person, int x, int y){
     a_person->origin_x = x;
     a_person->origin_y = y;
+    a_person->status = IN;
 }
 
 void add_person_to_grid(grid* my_grid, person a_person){

@@ -8,6 +8,8 @@
 
 int main (int argc, char *argv[])
 {
+    srand(time(NULL));
+    
     int print_duration = 0;
     scenario scenario = UNKNOWN;
     unsigned population = 0;
