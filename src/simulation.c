@@ -6,7 +6,7 @@
 
 grid field;
 move moves[] = {
-    {-1, -1}, {-1, 0}, {-1, 1}
+    {0, -1}, {-1, -1}, {-1, 0}, {-1, 1}, {0, 1}
 };
 
 void print_field() {
@@ -70,17 +70,18 @@ int is_finished(grid * field) {
 }
 
 void one_thread_simulation() {
-    //print_field();
-    //printf("\n\n\n\n\n\n");
+    print_field();
+    printf("\n\n\n\n\n\n");
 
     double min_dist = 0;
     direction dir = 0;
     int i = 0;
-    
+    printf("f : %d\n", is_finished(&field));
     while (! is_finished(&field)) {
 	++i;
 	
 	for (int p = 0; p < field.person_count; ++p) {
+	    printf("p : %d\n", p);
 	    if (field.people[p].status == IN) {
 
 		for (int m = 0; m < NB_MOVES; ++m) {
@@ -88,6 +89,21 @@ void one_thread_simulation() {
 		    int x = field.people[p].origin_x + moves[m].x;
 		    int y = field.people[p].origin_y + moves[m].y;
 
+		    switch(m) {
+		    case 0:
+			printf("N"); break;
+		    case 1:
+			printf("NW"); break;
+		    case 2:
+			printf("W"); break;
+		    case 3:
+			printf("SW"); break;
+		    case 4:
+			printf("S"); break;
+		    }
+		    printf("\n");
+
+		    /*
 		    switch(field.matrix[x][y].content) {
 		    case EMPTY:
 			printf("EMPTY\n");
@@ -98,15 +114,19 @@ void one_thread_simulation() {
 		    case PERSON:
 			printf("PERSON\n");
 			break;
-		    }
+			}*/
+
 		    if (field.matrix[x][y].content == EMPTY) {
 			float dist = distance_to_azimuth(x, y);
 			
 			if (min_dist == 0 || dist < min_dist) {
+			    printf("Ok\n");
+
 			    min_dist = dist;
 			    dir = m;
 			}
 		    }
+
 		}
 		
 		move_person(&field, p, dir);

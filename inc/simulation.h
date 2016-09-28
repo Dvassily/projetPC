@@ -6,7 +6,7 @@
 #define NB_MOVES 3
 
 typedef enum {
-    NW, W, SW
+    N, NW, W, SW, S
 } direction;
 
 typedef enum {

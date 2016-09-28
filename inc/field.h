@@ -11,7 +11,7 @@ EZConcurrency Project
 #include <stdlib.h>
 #include <string.h>
 
-#define DEFAULT_GRID_WIDTH              512
+#define DEFAULT_GRID_WIDTH              256
 #define DEFAULT_GRID_HEIGHT             128
 #define DEFAULT_WALL_WIDTH              16
 #define DEFAULT_EXIT_HEIGHT_WALL_1      8
