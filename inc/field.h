@@ -26,7 +26,6 @@ typedef enum {
     EMPTY,
     WALL,
     PERSON,
-    HOLE
 } cell_content_type;
 
 //Cell structure

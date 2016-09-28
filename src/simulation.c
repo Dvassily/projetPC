@@ -24,9 +24,6 @@ void print_field() {
 	    case PERSON:
 		putchar('P');
 		break;
-	    case HOLE:
-		putchar('H');
-		break;
 	    }
 	}
 	putchar('\n');
@@ -91,16 +88,27 @@ void one_thread_simulation() {
 		    int x = field.people[p].origin_x + moves[m].x;
 		    int y = field.people[p].origin_y + moves[m].y;
 
+		    switch(field.matrix[x][y].content) {
+		    case EMPTY:
+			printf("EMPTY\n");
+			break;
+		    case WALL:
+			printf("WALL\n");
+			break;
+		    case PERSON:
+			printf("PERSON\n");
+			break;
+		    }
 		    if (field.matrix[x][y].content == EMPTY) {
 			float dist = distance_to_azimuth(x, y);
-
+			
 			if (min_dist == 0 || dist < min_dist) {
 			    min_dist = dist;
 			    dir = m;
 			}
 		    }
 		}
-	    
+		
 		move_person(&field, p, dir);
 
 		if (field.people[p].origin_x == 0) {
