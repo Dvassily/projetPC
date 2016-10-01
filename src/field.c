@@ -12,6 +12,7 @@
 */
 
 #include <stdbool.h>
+#include <math.h>
 #include "../inc/field.h"
 
 void init_cell(cell* my_cell, int x, int y, cell_content_type content){
@@ -26,6 +27,7 @@ void add_cell_to_grid(grid* my_grid, int x, int y, cell my_cell){
     my_grid->matrix[x][y] = my_cell;
 }
 
+
 void add_walls(grid* my_grid){
     //First WALL
     for(int x = DEFAULT_WALL_1_X; x < DEFAULT_WALL_WIDTH; x++){
@@ -37,6 +39,7 @@ void add_walls(grid* my_grid){
             }
         }
     }
+
     //Second WALL
     for(int x = 0; x < DEFAULT_WALL_WIDTH; x++){
         for(int y = 0; y < my_grid->height; y++){
@@ -65,7 +68,7 @@ void init_grid(grid* my_grid, int width, int height){
 }
 
 int is_cell_empty(grid* my_grid, int x, int y){
-    if (x < 0 || x > my_grid->width - DEFAULT_PEOPLE_SIZE-1 ||
+    if (x < 0 || x > my_grid->width  - DEFAULT_PEOPLE_SIZE - 1 ||
 	y < 0 || y > my_grid->height - DEFAULT_PEOPLE_SIZE - 1)
 	return -1;
     
@@ -87,10 +90,16 @@ void populate_field(grid* field, int people) {
     int min_y = 0;
     int max_y = field->height - DEFAULT_PEOPLE_SIZE;
 
+    /*
+    person a_person;
+    init_person(&a_person, 130, 12);
+    add_person_to_grid(field, a_person);
+    */
+    
     for(int i = 0; i < people; i++) {
         do {
-            x = rand() % (max_x - min_x + 1) + min_x;
-            y = rand() % (max_y - min_y + 1) + min_y;
+            x = rand() % (max_x - min_x + 1) + min_x; // 127; 
+            y = rand() % (max_y - min_y + 1) + min_y; // 34; 
         } while (is_cell_empty(field, x, y) < 0);
 	
         person a_person;
@@ -104,6 +113,20 @@ void init_person(person* a_person, int x, int y){
     a_person->origin_x = x;
     a_person->origin_y = y;
     a_person->status = IN;
+}
+
+void delete_person(grid * grid, int person) {
+    int x = grid->people[person].origin_x;
+    int y = grid->people[person].origin_y;
+    
+    for (int i = x; i < x + DEFAULT_PEOPLE_SIZE; ++i) {
+	for (int j = y; j < y + DEFAULT_PEOPLE_SIZE; ++j) {
+	    grid->matrix[i][j].content = EMPTY;
+	}
+    }
+
+    grid->people[person].origin_x = 0;
+    grid->people[person].origin_y = 0;
 }
 
 void add_person_to_grid(grid* my_grid, person a_person){
@@ -121,6 +144,11 @@ void add_person_to_grid(grid* my_grid, person a_person){
     }
 }
 
+double distance_to_azimuth(int x, int y) {
+    int dist_x = x - AZIMUTH_X;
+    int dist_y = y - AZIMUTH_Y;
+    return sqrt( dist_x * dist_x + dist_y * dist_y );
+}
 
 /*
 void set_x(cell* my_cell, int x){

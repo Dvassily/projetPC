@@ -1,5 +1,6 @@
 #include <pthread.h>
 #include <stdlib.h>
+#include <stdbool.h>
 #include <math.h>
 #include "../inc/simulation.h"
 #include "../inc/field.h"
@@ -9,9 +10,11 @@ move moves[] = {
     {0, -1}, {-1, -1}, {-1, 0}, {-1, 1}, {0, 1}
 };
 
+/* Display the field */
 void print_field() {
     printf("People : %d\n", field.person_count);
     printf("Field : \n");
+
     for (int i = 0; i < field.height; ++i) {
 	for (int j = 0; j < field.width; ++j) {
 	    switch (field.matrix[j][i].content) {
@@ -22,7 +25,12 @@ void print_field() {
 		putchar('W');
 		break;
 	    case PERSON:
-		putchar('P');
+		for (int p = 0; p < field.person_count; ++p) {
+		    if ((j >= field.people[p].origin_x && j < field.people[p].origin_x + 4) &&
+			(i >= field.people[p].origin_y && i < field.people[p].origin_y + 4)) {
+			putchar('0' + p);
+		    }
+		}
 		break;
 	    }
 	}
@@ -31,32 +39,63 @@ void print_field() {
     putchar('\n');
 }
 
-double distance_to_azimuth(int x, int y) {
-    int dist_x = x - AZIMUTH_X;
-    int dist_y = y - AZIMUTH_Y;
-    return sqrt( dist_x * dist_x + dist_y * dist_y );
-}
-
-void move_person(grid * field, unsigned person, direction d) {
-    // New position of the person
-    int x = field->people[person].origin_x + moves[d].x;
-    int y = field->people[person].origin_y + moves[d].y;
+/* Move a person in the field into a direction  */
+void move_person(grid * field, unsigned p, direction d) {
+    // New position of the field->people[p]
+    int x = field->people[p].origin_x + moves[d].x;
+    int y = field->people[p].origin_y + moves[d].y;
 
     // Set the old cells to EMPTY
-    for (int i = field->people[person].origin_x;
-	 i < field->people[person].origin_x + 4; ++i)
-	for (int j = field->people[person].origin_y;
-	     j < field->people[person].origin_y + 4; ++j)
+    for (int i = field->people[p].origin_x;
+	 i < field->people[p].origin_x + 4; ++i)
+	for (int j = field->people[p].origin_y;
+	     j < field->people[p].origin_y + 4; ++j)
 	    field->matrix[i][j].content = EMPTY;
 
-    // Update person's position
-    field->people[person].origin_x = x;
-    field->people[person].origin_y = y;
+    // Update field->people[p]'s position
+    field->people[p].origin_x = x;
+    field->people[p].origin_y = y;
 
-    // Set the old cells to PERSON
+    // Set the old cells to FIELD->PEOPLE[P]
     for (int i = x; i < x + 4; ++i)
 	for (int j = y; j < y + 4; ++j)
 	    field->matrix[i][j].content = PERSON;
+}
+
+/* Returns true if the person 'person' in the field 'field 'can move into direction 'd'  */
+bool can_move(grid * field, person person, direction d) {
+    // New position of the person
+    int x = person.origin_x;
+    int y = person.origin_y;
+
+    if (d == N) {
+	for (int i = x; i < x + 4; ++i)
+	    if (field->matrix[x][y - 1].content != EMPTY) return false;
+
+    } else if (d == NW) {
+	for (int i = y - 1; i < (y - 1) + 4; ++i)
+	    if (field->matrix[x - 1][i].content != EMPTY) return false;
+	for (int i = x; i < x + 3; ++i)
+	    if (field->matrix[i][y- 1].content != EMPTY) return false;
+
+    } else if (d == W) {
+	for (int i = y; i < y + 4; ++i)
+	    if (field->matrix[x - 1][i].content != EMPTY) return false;
+	
+    } else if (d == SW) {
+	for (int i = y + 1; i < (y + 1) + 4; ++i)
+	    if (field->matrix[x - 1][i].content != EMPTY) return false;
+	for (int i = x; i < x + 3; ++i)
+	    if (field->matrix[i][y + 4].content != EMPTY) return false;
+	
+    } else if (d == S) {
+	for (int i = x; i < x + 4; ++i)
+	    if (field->matrix[i][y + 4].content != EMPTY) return false;
+	
+    } else if (d == UNKNOWN_DIR)
+	return false;
+    
+    return true;
 }
 
 /* Return true if the simulation is finished (i.e : all persons reached the hole)
@@ -70,76 +109,45 @@ int is_finished(grid * field) {
 }
 
 void one_thread_simulation() {
-    print_field();
-    printf("\n\n\n\n\n\n");
-
-    double min_dist = 0;
-    direction dir = 0;
+    print_field(); printf("\n\n\n\n\n\n");
+    
     int i = 0;
-    printf("f : %d\n", is_finished(&field));
     while (! is_finished(&field)) {
 	++i;
-	
-	for (int p = 0; p < field.person_count; ++p) {
-	    printf("p : %d\n", p);
-	    if (field.people[p].status == IN) {
 
+	for (int p = 0; p < field.person_count; ++p) {
+	    if (field.people[p].status == IN) {
+		double min_dist = 0;
+		direction dir = UNKNOWN_DIR;
+		
 		for (int m = 0; m < NB_MOVES; ++m) {
-			    
 		    int x = field.people[p].origin_x + moves[m].x;
 		    int y = field.people[p].origin_y + moves[m].y;
 
-		    switch(m) {
-		    case 0:
-			printf("N"); break;
-		    case 1:
-			printf("NW"); break;
-		    case 2:
-			printf("W"); break;
-		    case 3:
-			printf("SW"); break;
-		    case 4:
-			printf("S"); break;
-		    }
-		    printf("\n");
-
-		    /*
-		    switch(field.matrix[x][y].content) {
-		    case EMPTY:
-			printf("EMPTY\n");
-			break;
-		    case WALL:
-			printf("WALL\n");
-			break;
-		    case PERSON:
-			printf("PERSON\n");
-			break;
-			}*/
-
-		    if (field.matrix[x][y].content == EMPTY) {
+		    if (can_move(&field, field.people[p], m)) {
 			float dist = distance_to_azimuth(x, y);
 			
 			if (min_dist == 0 || dist < min_dist) {
-			    printf("Ok\n");
-
 			    min_dist = dist;
 			    dir = m;
 			}
 		    }
-
 		}
-		
+
+		if (dir == UNKNOWN_DIR)
+		    continue;
+				
 		move_person(&field, p, dir);
 
 		if (field.people[p].origin_x == 0) {
 		    field.people[p].status = OUT;
+		    delete_person(&field, p);
 		}
 	    }
 	}
-
-	if ((i % 10) == 0) {
-	    print_field();
-	    printf("\n\n\n\n\n\n");
+	
+	if ((i % 5) == 0) {
+	    print_field(); printf("\n\n\n\n\n\n");
 	}
     }
 

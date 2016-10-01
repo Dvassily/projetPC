@@ -18,7 +18,7 @@ $(DOBJ)main.o:$(DSRC)main.c
 $(DOBJ)field.o:$(DSRC)field.c $(DINC)field.h
 	$(CC) $(FLAGS) -c $< -o $@
 
-$(DOBJ)simulation.o:$(DSRC)simulation.c $(DINC)simulation.h
+$(DOBJ)simulation.o:$(DSRC)simulation.c $(DINC)simulation.h $(DINC)field.h
 	$(CC) $(FLAGS) -c $< -o $@ -pthread
 
 clean:

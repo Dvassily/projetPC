@@ -10,8 +10,9 @@ EZConcurrency Project
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "simulation.h"
 
-#define DEFAULT_GRID_WIDTH              256
+#define DEFAULT_GRID_WIDTH              512
 #define DEFAULT_GRID_HEIGHT             128
 #define DEFAULT_WALL_WIDTH              16
 #define DEFAULT_EXIT_HEIGHT_WALL_1      8
@@ -20,6 +21,22 @@ EZConcurrency Project
 #define DEFAULT_WALL_2_X                111
 #define DEFAULT_PEOPLE_SIZE             4
 #define DEFAULT_MAX_PEOPLE_IN_GRID      512
+#define AZIMUTH_X  -4
+#define AZIMUTH_Y  63
+
+/*
+#define DEFAULT_GRID_WIDTH              192
+#define DEFAULT_GRID_HEIGHT             64
+#define DEFAULT_WALL_WIDTH              16
+#define DEFAULT_EXIT_HEIGHT_WALL_1      8
+#define DEFAULT_EXIT_HEIGHT_WALL_2      16
+#define DEFAULT_WALL_1_X                0
+#define DEFAULT_WALL_2_X                111
+#define DEFAULT_PEOPLE_SIZE             4
+#define DEFAULT_MAX_PEOPLE_IN_GRID      512
+#define AZIMUTH_X  -4
+#define AZIMUTH_Y  31
+*/
 
 //Cell content type enum
 typedef enum {
@@ -66,6 +83,8 @@ void add_person_to_grid(grid* my_grid, person a_person);
 void init_grid(grid* my_grid, int width, int height);
 void populate_field(grid* field, int people);
 int is_cell_empty(grid* my_grid, int x, int y);
+double distance_to_azimuth(int x, int y);
+void delete_person(grid * grid, int person);
 
 /*
 void set_cell_content(cell* my_cell, cell_content_type content);

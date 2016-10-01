@@ -1,16 +1,15 @@
 #ifndef SIMULATION_H
 #define SIMULATION_H
 
-#define AZIMUTH_X  -4
-#define AZIMUTH_Y  63
-#define NB_MOVES 3
+#define NB_MOVES 5
 
 typedef enum {
+    UNKNOWN_DIR = -1,
     N, NW, W, SW, S
 } direction;
 
 typedef enum {
-    UNKNOWN = -1,
+    UNKNOWN_SCE = -1,
     ONE_THREAD, FOUR_THREADS, N_THREADS
 } scenario;
 
