@@ -154,6 +154,75 @@ void one_thread_simulation() {
     printf("i = %d\n", i);
 }
 
+void* four_threads_simulation(void* ptr_zone)
+{
+    field_zone zone = *((field_zone*) ptr_zone);
+    int xmin, xmax, ymin, ymax;
+    
+    switch(zone) {
+    case TOP_LEFT:
+	xmin = 0; xmax = (DEFAULT_GRID_WIDTH / 2) - 1;
+	ymin = 0; ymax = (DEFAULT_GRID_HEIGHT / 2) - 1;
+	break;
+    case TOP_RIGHT:
+	xmin = (DEFAULT_GRID_WIDTH / 2); xmax =  DEFAULT_GRID_WIDTH - 1;
+	ymin = 0; ymax = (DEFAULT_GRID_HEIGHT / 2) - 1;
+	break;
+    case BOTTOM_LEFT:
+	xmin = 0; xmax = (DEFAULT_GRID_WIDTH / 2) - 1;
+	ymin = (DEFAULT_GRID_HEIGHT / 2) - 1; ymax = DEFAULT_GRID_HEIGHT - 1;
+	break;
+    case BOTTOM_RIGHT:
+	xmin = (DEFAULT_GRID_WIDTH / 2); xmax =  DEFAULT_GRID_WIDTH - 1;
+	ymin = (DEFAULT_GRID_HEIGHT / 2) - 1; ymax = DEFAULT_GRID_HEIGHT - 1;
+	break;
+    }
+    
+    int i = 0;
+    while (! is_finished(&field)) {
+	++i;
+
+	for (int p = 0; p < field.person_count; ++p) {
+	    if (field.people[p].status == IN &&
+		field.people[p].origin_x >= xmin && field.people[p].origin_x <= xmax &&
+		field.people[p].origin_y >= ymin && field.people[p].origin_y <= ymax) {
+		double min_dist = 0;
+		direction dir = UNKNOWN_DIR;
+		
+		for (int m = 0; m < NB_MOVES; ++m) {
+		    int x = field.people[p].origin_x + moves[m].x;
+		    int y = field.people[p].origin_y + moves[m].y;
+
+		    if (can_move(&field, field.people[p], m)) {
+			float dist = distance_to_azimuth(x, y);
+			
+			if (min_dist == 0 || dist < min_dist) {
+			    min_dist = dist;
+			    dir = m;
+			}
+		    }
+		}
+
+		if (dir == UNKNOWN_DIR)
+		    continue;
+				
+		move_person(&field, p, dir);
+		printf("p%d : (%d, %d)\n", p, field.people[p].origin_x, field.people[p].origin_y);
+		
+		if (field.people[p].origin_x == 0) {
+		    field.people[p].status = OUT;
+		    delete_person(&field, p);
+		}
+	    }
+	}
+    }
+
+    printf("i = %d\n", i);
+    
+    
+    return NULL;
+}
+
 void start_simulation(unsigned population, scenario sc) {
     int thread_status = 0;
     // Field initialisation
@@ -164,17 +233,27 @@ void start_simulation(unsigned population, scenario sc) {
     case ONE_THREAD: ;
 	one_thread_simulation();
 	break;
-    case FOUR_THREADS:
-	// pthread_t thread[4];
-	// thread_status = pthread_create(&thread, NULL, &one_thread_simulation, NULL);
+    case FOUR_THREADS: ;
+	pthread_t thread[4];
+	field_zone zones[4] = {TOP_LEFT, TOP_RIGHT, BOTTOM_LEFT, BOTTOM_RIGHT};
+	
+	for (int i = 0; i < 4; ++i) {
+	    thread_status = pthread_create(&thread[i], NULL,
+					   &four_threads_simulation, (void*) &zones[i]);
+
+	    if (thread_status) {
+		fprintf(stderr, "Error creating thread\n");
+		exit(EXIT_FAILURE);
+	    }
+	}
+
+	for (int i = 0; i < 4; ++i)
+	    pthread_join(thread[i], NULL); // retval?
+	
 	break;
     default:
 	fprintf(stderr, "Unknown scenario : %d\n", sc);
 	exit(EXIT_FAILURE);
     }
 
-    if (sc != ONE_THREAD && thread_status) {
-	fprintf(stderr, "Error creating thread\n");
-	exit(EXIT_FAILURE);
-    }
 }

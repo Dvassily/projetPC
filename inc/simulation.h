@@ -9,6 +9,10 @@ typedef enum {
 } direction;
 
 typedef enum {
+    TOP_LEFT, TOP_RIGHT, BOTTOM_LEFT, BOTTOM_RIGHT
+} field_zone;
+
+typedef enum {
     UNKNOWN_SCE = -1,
     ONE_THREAD, FOUR_THREADS, N_THREADS
 } scenario;
