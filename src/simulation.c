@@ -219,7 +219,6 @@ void* four_threads_simulation(void* ptr_zone)
 
     printf("i = %d\n", i);
     
-    
     return NULL;
 }
 

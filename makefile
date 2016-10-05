@@ -2,7 +2,7 @@
 
 EXE=executable.exe
 CC=gcc -std=c99
-FLAGS=-Wall -pthread -lm
+FLAGS=-Wall -pthread -lm -g -lSDL2
 DSRC=src/
 DOBJ=obj/
 DINC=inc/
