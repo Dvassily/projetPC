@@ -2,12 +2,12 @@
 
 EXE=executable.exe
 CC=gcc -std=c99
-FLAGS=-Wall -pthread -lm -g -lSDL2
+FLAGS=-Wall -pthread -lm -g -lSDL2 -DGUI
 DSRC=src/
 DOBJ=obj/
 DINC=inc/
 
-OBJ=$(DOBJ)field.o $(DOBJ)main.o $(DOBJ)simulation.o
+OBJ=$(DOBJ)field.o $(DOBJ)main.o $(DOBJ)simulation.o $(DOBJ)gui.o
 
 $(EXE):$(OBJ)
 	$(CC) $(FLAGS) $(OBJ) -o $(EXE)
@@ -19,7 +19,11 @@ $(DOBJ)field.o:$(DSRC)field.c $(DINC)field.h
 	$(CC) $(FLAGS) -c $< -o $@
 
 $(DOBJ)simulation.o:$(DSRC)simulation.c $(DINC)simulation.h $(DINC)field.h
-	$(CC) $(FLAGS) -c $< -o $@ -pthread
+	$(CC) $(FLAGS) -c $< -o $@ 
+
+$(DOBJ)gui.o:$(DSRC)gui.c $(DINC)gui.h $(DINC)field.h
+	$(CC) $(FLAGS) -c $< -o $@ 
+
 
 clean:
 	rm -f ./src/*~ ./obj/*.o ./*~ ./inc/*~ ./*.exe

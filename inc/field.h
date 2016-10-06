@@ -4,8 +4,8 @@ Author Matthieu BERGER
 
 EZConcurrency Project
 */
-#ifndef ELEMENTS_H
-#define ELEMENTS_H
+#ifndef FIELD_H
+#define FIELD_H
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -70,7 +70,7 @@ typedef struct {
 } person;
 
 //Grid structure
-typedef struct {
+typedef struct grid {
     int height;
     int width;
     cell matrix[DEFAULT_GRID_WIDTH][DEFAULT_GRID_HEIGHT];
@@ -97,5 +97,5 @@ void move_to(person* a_person, grid* my_grid, int x, int y); // ?
 void move_cell(cell* my_cell); //?
 */
 
-#endif
+#endif // FIELD_H
 

@@ -1,6 +1,12 @@
 #ifndef SIMULATION_H
 #define SIMULATION_H
 
+
+#ifdef GUI
+  #include <SDL2/SDL.h>
+  #include "gui.h"
+#endif // GUI
+
 #define NB_MOVES 5
 
 typedef enum {
@@ -21,6 +27,16 @@ typedef struct {
     int x;
     int y;
 } move;
+
+typedef struct {
+    field_zone zone;
+    int person_id;
+    #ifdef GUI
+      SDL_Window* window;
+      SDL_Renderer* renderer;
+      struct rgb_color* colors;
+    #endif // GUI
+} thread_args;
 
 void start_simulation(unsigned population, scenario sc);
 double distance_to_azimuth(int x, int y);

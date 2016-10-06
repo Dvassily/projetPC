@@ -3,15 +3,14 @@
 #include <getopt.h>
 #include <time.h>
 #include <math.h>
-#include "../inc/field.h"
 #include "../inc/simulation.h"
 
 int main (int argc, char *argv[])
 {
     srand(time(NULL));
-
+    
     int print_duration = 0;
-    scenario scenario = UNKNOWN;
+    scenario scenario = UNKNOWN_SCE;
     unsigned population = 0;
     time_t time_before;
 
@@ -38,7 +37,7 @@ int main (int argc, char *argv[])
 	}
     }
 
-    if (scenario == UNKNOWN) {
+    if (scenario == UNKNOWN_SCE) {
 	fprintf(stderr, "Missing parameter -t\n");
 	exit(EXIT_FAILURE);
     }

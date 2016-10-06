@@ -10,43 +10,12 @@
   #include <SDL2/SDL.h>
 
   SDL_Event e;
-  SDL_Window* window = NULL;
-  SDL_Renderer* renderer = NULL;
 #endif
 
 grid field;
 move moves[] = {
     {0, -1}, {-1, -1}, {-1, 0}, {-1, 1}, {0, 1}
 };
-
-/* Display the field */
-void print_field() {
-    printf("People : %d\n", field.person_count);
-    printf("Field : \n");
-
-    for (int i = 0; i < field.height; ++i) {
-	for (int j = 0; j < field.width; ++j) {
-	    switch (field.matrix[j][i].content) {
-	    case EMPTY:
-		putchar('_');
-		break;
-	    case WALL:
-		putchar('W');
-		break;
-	    case PERSON:
-		for (int p = 0; p < field.person_count; ++p) {
-		    if ((j >= field.people[p].origin_x && j < field.people[p].origin_x + 4) &&
-			(i >= field.people[p].origin_y && i < field.people[p].origin_y + 4)) {
-			putchar('0' + p);
-		    }
-		}
-		break;
-	    }
-	}
-	putchar('\n');
-    }
-    putchar('\n');
-}
 
 /* Move a person in the field into a direction  */
 void move_person(grid * field, unsigned p, direction d) {
@@ -117,7 +86,11 @@ int is_finished(grid * field) {
     return 1;
 }
 
-void one_thread_simulation() {
+void one_thread_simulation(thread_args args) {
+    #ifdef GUI
+      SDL_Renderer * renderer = args.renderer;
+      rgb_color* colors = args.colors;
+    #endif
     //print_field(); printf("\n\n\n\n\n\n");
     
     int i = 0;
@@ -165,23 +138,19 @@ void one_thread_simulation() {
 	// Fill window in white
 	SDL_SetRenderDrawColor(renderer, 0xFF, 0xFF, 0xFF, 0xFF);
 	SDL_RenderClear(renderer);
-	//update(renderer, &field, colors);
+	update(renderer, &field, colors);
 	SDL_RenderPresent(renderer);
 	#endif
-
-	/*
-	if ((i % 5) == 0) {
-	    print_field(); printf("\n\n\n\n\n\n");
-	}
-	*/
     }
 
     printf("i = %d\n", i);
 }
 
-void* four_threads_simulation(void* ptr_zone)
+void* four_threads_simulation(void* ptr_args)
 {
-    field_zone zone = *((field_zone*) ptr_zone);
+    field_zone zone = ((thread_args*) ptr_args)->zone;
+    printf("%d\n", zone);
+
     int xmin, xmax, ymin, ymax;
     
     switch(zone) {
@@ -243,13 +212,14 @@ void* four_threads_simulation(void* ptr_zone)
     }
 
     printf("i = %d\n", i);
-    
+
     return NULL;
 }
 
-void* n_threads_simulation(void* ptr_person_id)
+void* n_threads_simulation(void* ptr_args)
 {
-    int person_id = *((int*) ptr_person_id);
+    int person_id = ((thread_args*) ptr_args)->person_id;
+    printf("%d\n", person_id);
 
     int i = 0;
     while (! is_finished(&field)) {
@@ -290,20 +260,23 @@ void* n_threads_simulation(void* ptr_person_id)
 
     printf("i = %d\n", i);
     
-    
     return NULL;
 }
 
 void start_simulation(unsigned population, scenario sc) {
-    pthread_t thread[4];
     int thread_status = 0;
+    /*
     int person_id[population];
     for (unsigned i = 0; i < population; ++i)
 	person_id[i] = i;
-
+    */
+    
     #ifdef GUI
       rgb_color colors[population];
       generate_colors(colors, population);
+
+      SDL_Window* window = NULL;
+      SDL_Renderer* renderer = NULL;
       
       if (! init(&window, &renderer)) {
 	  printf("GUI initialization failed.\n");
@@ -316,17 +289,28 @@ void start_simulation(unsigned population, scenario sc) {
     init_grid(&field, DEFAULT_GRID_WIDTH, DEFAULT_GRID_HEIGHT);
     populate_field(&field, population);
 
-    switch (sc) {
-    case ONE_THREAD: ;
-	one_thread_simulation();
-	break;
-    case FOUR_THREADS: ;
+    if (sc == ONE_THREAD) {
+	thread_args args;
+	#ifdef GUI
+	  args.renderer = renderer;
+	  args.colors = colors;
+	#endif
+	one_thread_simulation(args);
+    } else if (sc == FOUR_THREADS) {
 	// BUG : Des fois 'segmentation fault', d'autres fois boucle infinie -> Pourquoi?
-	field_zone zones[4] = {TOP_LEFT, TOP_RIGHT, BOTTOM_LEFT, BOTTOM_RIGHT};
+	//field_zone zones[4] = {TOP_LEFT, TOP_RIGHT, BOTTOM_LEFT, BOTTOM_RIGHT};
+	pthread_t thread[4];
+	thread_args t_args[4];
 	
 	for (unsigned i = 0; i < 4; ++i) {
+	    t_args[i].zone = i;
+            #ifdef GUI
+	      t_args[i].renderer = renderer;
+	      t_args[i].colors = colors;
+            #endif
+
 	    thread_status = pthread_create(&thread[i], NULL,
-					   &four_threads_simulation, (void*) &zones[i]);
+					   &four_threads_simulation, (void*) &t_args[i]);
 
 	    if (thread_status) {
 		fprintf(stderr, "Error creating thread\n");
@@ -336,12 +320,14 @@ void start_simulation(unsigned population, scenario sc) {
 
 	for (unsigned i = 0; i < 4; ++i)
 	    pthread_join(thread[i], NULL); // retval?
+    } else if (sc == N_THREADS) {
+	thread_args t_args[population];
+	pthread_t thread[population];
 	
-	break;
-    case N_THREADS: ;
 	for (unsigned i = 0; i < population; ++i) {
+	    t_args[i].person_id = i;
 	    thread_status = pthread_create(&thread[i], NULL,
-					   &n_threads_simulation, (void*) &person_id[i]);
+					   &n_threads_simulation, (void*) &t_args[i]);
 	    
 	    if (thread_status) {
 		fprintf(stderr, "Error creating thread\n");
@@ -351,8 +337,7 @@ void start_simulation(unsigned population, scenario sc) {
 	
 	for (unsigned i = 0; i < population; ++i)
 	    pthread_join(thread[i], NULL); // retval?
-	break;
-    default:
+    } else {
 	fprintf(stderr, "Unknown scenario : %d\n", sc);
 	exit(EXIT_FAILURE);
     }
