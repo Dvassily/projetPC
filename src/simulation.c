@@ -5,6 +5,15 @@
 #include "../inc/simulation.h"
 #include "../inc/field.h"
 
+#ifdef GUI
+  #include "../inc/gui.h"
+  #include <SDL2/SDL.h>
+
+  SDL_Event e;
+  SDL_Window* window = NULL;
+  SDL_Renderer* renderer = NULL;
+#endif
+
 grid field;
 move moves[] = {
     {0, -1}, {-1, -1}, {-1, 0}, {-1, 1}, {0, 1}
@@ -109,7 +118,7 @@ int is_finished(grid * field) {
 }
 
 void one_thread_simulation() {
-    print_field(); printf("\n\n\n\n\n\n");
+    //print_field(); printf("\n\n\n\n\n\n");
     
     int i = 0;
     while (! is_finished(&field)) {
@@ -145,10 +154,26 @@ void one_thread_simulation() {
 		}
 	    }
 	}
+
+	#ifdef GUI
+	while (SDL_PollEvent(&e) != 0) {
+	    if( e.type == SDL_QUIT ) {
+		return;
+	    }
+	}
 	
+	// Fill window in white
+	SDL_SetRenderDrawColor(renderer, 0xFF, 0xFF, 0xFF, 0xFF);
+	SDL_RenderClear(renderer);
+	//update(renderer, &field, colors);
+	SDL_RenderPresent(renderer);
+	#endif
+
+	/*
 	if ((i % 5) == 0) {
 	    print_field(); printf("\n\n\n\n\n\n");
 	}
+	*/
     }
 
     printf("i = %d\n", i);
@@ -275,6 +300,17 @@ void start_simulation(unsigned population, scenario sc) {
     int person_id[population];
     for (unsigned i = 0; i < population; ++i)
 	person_id[i] = i;
+
+    #ifdef GUI
+      rgb_color colors[population];
+      generate_colors(colors, population);
+      
+      if (! init(&window, &renderer)) {
+	  printf("GUI initialization failed.\n");
+	  exit(EXIT_FAILURE);
+      }
+
+    #endif
     
     // Field initialisation
     init_grid(&field, DEFAULT_GRID_WIDTH, DEFAULT_GRID_HEIGHT);
@@ -303,8 +339,7 @@ void start_simulation(unsigned population, scenario sc) {
 	
 	break;
     case N_THREADS: ;
-	
-	for (unsigned i = 0; i < 4; ++i) {
+	for (unsigned i = 0; i < population; ++i) {
 	    thread_status = pthread_create(&thread[i], NULL,
 					   &n_threads_simulation, (void*) &person_id[i]);
 	    
@@ -314,11 +349,20 @@ void start_simulation(unsigned population, scenario sc) {
 	    }
 	}
 	
-	for (unsigned i = 0; i < 4; ++i)
+	for (unsigned i = 0; i < population; ++i)
 	    pthread_join(thread[i], NULL); // retval?
 	break;
     default:
 	fprintf(stderr, "Unknown scenario : %d\n", sc);
 	exit(EXIT_FAILURE);
     }
+
+#ifdef GUI
+    SDL_DestroyRenderer(renderer);
+    SDL_DestroyWindow(window);
+    window = NULL;
+    renderer = NULL;
+    
+    SDL_Quit();
+#endif
 }
