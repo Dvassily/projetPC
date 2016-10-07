@@ -209,6 +209,8 @@ void* four_threads_simulation(void* ptr_args)
 		}
 	    }
 	}
+
+	SDL_Delay(25);
     }
 
     printf("i = %d\n", i);
@@ -256,6 +258,8 @@ void* n_threads_simulation(void* ptr_args)
 		}
 	    }
 	}
+	SDL_Delay(25);
+
     }
 
     printf("i = %d\n", i);
@@ -304,10 +308,6 @@ void start_simulation(unsigned population, scenario sc) {
 	
 	for (unsigned i = 0; i < 4; ++i) {
 	    t_args[i].zone = i;
-            #ifdef GUI
-	      t_args[i].renderer = renderer;
-	      t_args[i].colors = colors;
-            #endif
 
 	    thread_status = pthread_create(&thread[i], NULL,
 					   &four_threads_simulation, (void*) &t_args[i]);
@@ -317,6 +317,23 @@ void start_simulation(unsigned population, scenario sc) {
 		exit(EXIT_FAILURE);
 	    }
 	}
+
+#ifdef GUI
+	while (! is_finished(&field)) {
+	    while (SDL_PollEvent(&e) != 0) {
+		if( e.type == SDL_QUIT ) {
+		    return;
+		}
+	    }
+	
+	    // Fill window in white
+	    SDL_SetRenderDrawColor(renderer, 0xFF, 0xFF, 0xFF, 0xFF);
+	    SDL_RenderClear(renderer);
+	    update(renderer, &field, colors);
+	    SDL_RenderPresent(renderer);
+	}
+#endif
+
 
 	for (unsigned i = 0; i < 4; ++i)
 	    pthread_join(thread[i], NULL); // retval?
@@ -334,7 +351,22 @@ void start_simulation(unsigned population, scenario sc) {
 		exit(EXIT_FAILURE);
 	    }
 	}
+
+#ifdef GUI
+	while (! is_finished(&field)) {
+	    while (SDL_PollEvent(&e) != 0) {
+		if( e.type == SDL_QUIT ) {
+		    return;
+		}
+	    }
 	
+	    // Fill window in white
+	    SDL_SetRenderDrawColor(renderer, 0xFF, 0xFF, 0xFF, 0xFF);
+	    SDL_RenderClear(renderer);
+	    update(renderer, &field, colors);
+	    SDL_RenderPresent(renderer);
+	}
+#endif
 	for (unsigned i = 0; i < population; ++i)
 	    pthread_join(thread[i], NULL); // retval?
     } else {
