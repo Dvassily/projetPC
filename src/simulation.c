@@ -27,17 +27,31 @@ void move_person(grid * field, unsigned p, direction d) {
     for (int i = field->people[p].origin_x;
 	 i < field->people[p].origin_x + 4; ++i)
 	for (int j = field->people[p].origin_y;
-	     j < field->people[p].origin_y + 4; ++j)
+	     j < field->people[p].origin_y + 4; ++j) {
 	    field->matrix[i][j].content = EMPTY;
+
+	}
 
     // Update field->people[p]'s position
     field->people[p].origin_x = x;
     field->people[p].origin_y = y;
 
     // Set the old cells to FIELD->PEOPLE[P]
-    for (int i = x; i < x + 4; ++i)
-	for (int j = y; j < y + 4; ++j)
+    for (int i = x; i < x + 4; ++i) {
+	for (int j = y; j < y + 4; ++j) {
+	    /*
+	    switch(field->matrix[i][j].content) {
+	    case PERSON:
+		printf("P"); break;
+	    case WALL:
+		printf("W"); break;
+	    case EMPTY:
+		printf(" "); break;
+		}*/
 	    field->matrix[i][j].content = PERSON;
+	    
+	}
+    }
 }
 
 /* Returns true if the person 'person' in the field 'field 'can move into direction 'd'  */
@@ -48,8 +62,8 @@ bool can_move(grid * field, person person, direction d) {
 
     if (d == N) {
 	for (int i = x; i < x + 4; ++i)
-	    if (field->matrix[x][y - 1].content != EMPTY) return false;
-
+	    if (field->matrix[i][y - 1].content != EMPTY)
+		return false;
     } else if (d == NW) {
 	for (int i = y - 1; i < (y - 1) + 4; ++i)
 	    if (field->matrix[x - 1][i].content != EMPTY) return false;
@@ -91,7 +105,6 @@ void one_thread_simulation(thread_args args) {
       SDL_Renderer * renderer = args.renderer;
       rgb_color* colors = args.colors;
     #endif
-    //print_field(); printf("\n\n\n\n\n\n");
     
     int i = 0;
     while (! is_finished(&field)) {
@@ -103,10 +116,10 @@ void one_thread_simulation(thread_args args) {
 		direction dir = UNKNOWN_DIR;
 		
 		for (int m = 0; m < NB_MOVES; ++m) {
-		    int x = field.people[p].origin_x + moves[m].x;
-		    int y = field.people[p].origin_y + moves[m].y;
-
 		    if (can_move(&field, field.people[p], m)) {
+			int x = field.people[p].origin_x + moves[m].x;
+			int y = field.people[p].origin_y + moves[m].y;
+
 			float dist = distance_to_azimuth(x, y);
 			
 			if (min_dist == 0 || dist < min_dist) {
