@@ -125,8 +125,8 @@ void delete_person(grid * grid, int person) {
 	}
     }
 
-    grid->people[person].origin_x = 0;
-    grid->people[person].origin_y = 0;
+    //grid->people[person].origin_x = 0;
+    //grid->people[person].origin_y = 0;
 }
 
 void add_person_to_grid(grid* my_grid, person a_person){

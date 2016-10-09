@@ -8,11 +8,10 @@
 int main (int argc, char *argv[])
 {
     srand(time(NULL));
-    
+
     int print_duration = 0;
     scenario scenario = UNKNOWN_SCE;
     unsigned population = 0;
-    time_t time_before;
 
     // Command line parsing
     // TODO :
@@ -21,7 +20,6 @@ int main (int argc, char *argv[])
     while ((c = getopt (argc, argv, "mt:p:")) != -1){
 	switch(c){
         case 'm':
-            time_before = clock();
             print_duration = 1;
             break;
         case 'p':
@@ -47,12 +45,7 @@ int main (int argc, char *argv[])
 	exit(EXIT_FAILURE);	
     }
     
-    start_simulation(population, scenario);
-
-    // show execution time of the simulation
-    if (print_duration) {
-	printf("Execution time : %f\n", (float) (clock() - time_before) / CLOCKS_PER_SEC);
-    }
+    start_simulation(population, scenario, print_duration);
 
     return 0;
 }

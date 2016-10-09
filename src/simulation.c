@@ -37,14 +37,11 @@ void move_person(grid * field, unsigned p, direction d) {
     field->people[p].origin_y = y;
 
     // Set the old cells to PERSON
-    //printf("%d %d\n", x, y);
     for (int i = x; i < x + 4; ++i) {
 	for (int j = y; j < y + 4; ++j) {
-	    //printf("%d %d\n", i, j);
 	    field->matrix[i][j].content = PERSON;
 	}
     }
-    //printf("\n");
 }
 
 /* Returns true if the person 'person' in the field 'field 'can move into direction 'd'  */
@@ -83,6 +80,29 @@ bool can_move(grid * field, person person, direction d) {
     return true;
 }
 
+direction choose_direction(grid * field, int p) {
+    double min_dist = distance_to_azimuth(field->people[p].origin_x,
+					  field->people[p].origin_y);
+    direction dir = UNKNOWN_DIR;
+		
+    for (int m = 0; m < NB_MOVES; ++m) {
+	if (can_move(field, field->people[p], m)) {
+	    int x = field->people[p].origin_x + moves[m].x;
+	    int y = field->people[p].origin_y + moves[m].y;
+
+	    float dist = distance_to_azimuth(x, y);
+			
+	    if (min_dist == 0 || dist < min_dist) {
+		min_dist = dist;
+		dir = m;
+	    }
+	}
+    }
+
+    return dir;
+}
+
+
 /* Return true if the simulation is finished (i.e : all persons reached the hole)
    and false otherwise */
 int is_finished(grid * field) {
@@ -105,29 +125,13 @@ void one_thread_simulation(thread_args args) {
 
 	for (int p = 0; p < field.person_count; ++p) {
 	    if (field.people[p].status == IN) {
-		double min_dist = distance_to_azimuth(field.people[p].origin_x,
-						      field.people[p].origin_y);
-		direction dir = UNKNOWN_DIR;
+		direction dir = choose_direction(&field, p);
 		
-		for (int m = 0; m < NB_MOVES; ++m) {
-		    if (can_move(&field, field.people[p], m)) {
-			int x = field.people[p].origin_x + moves[m].x;
-			int y = field.people[p].origin_y + moves[m].y;
-
-			float dist = distance_to_azimuth(x, y);
-			
-			if (min_dist == 0 || dist < min_dist) {
-			    min_dist = dist;
-			    dir = m;
-			}
-		    }
-		}
-
 		if (dir == UNKNOWN_DIR)
 		    continue;
-				
+		
 		move_person(&field, p, dir);
-
+		
 		if (field.people[p].origin_x == 0) {
 		    field.people[p].status = OUT;
 		    delete_person(&field, p);
@@ -140,22 +144,14 @@ void one_thread_simulation(thread_args args) {
 	    if( e.type == SDL_QUIT )
 		return;
 	
-	// Fill window in white
-	SDL_SetRenderDrawColor(renderer, 0xFF, 0xFF, 0xFF, 0xFF);
-	SDL_RenderClear(renderer);
 	update(renderer, &field, colors);
-	SDL_RenderPresent(renderer);
 	#endif
     }
-
-    printf("i = %d\n", i);
 }
 
 void* four_threads_simulation(void* ptr_args)
 {
     field_zone zone = ((thread_args*) ptr_args)->zone;
-    //printf("%d\n", zone);
-
     int xmin, xmax, ymin, ymax;
     
     switch(zone) {
@@ -209,8 +205,7 @@ void* four_threads_simulation(void* ptr_args)
 		    continue;
 				
 		move_person(&field, p, dir);
-		//printf("p%d : (%d, %d)\n", p, field.people[p].origin_x, field.people[p].origin_y);
-		
+
 		if (field.people[p].origin_x == 0) {
 		    field.people[p].status = OUT;
 		    delete_person(&field, p);
@@ -223,18 +218,15 @@ void* four_threads_simulation(void* ptr_args)
 	#endif
     }
 
-    printf("i = %d\n", i);
-
     return NULL;
 }
 
 void* n_threads_simulation(void* ptr_args)
 {
     int person_id = ((thread_args*) ptr_args)->person_id;
-    //printf("%d\n", person_id);
 
     int i = 0;
-    while (! is_finished(&field)) {
+    while (! is_finished(&field) && field.people[person_id].status == IN) {
 	++i;
 
 	for (int p = 0; p < field.person_count; ++p) {
@@ -244,10 +236,10 @@ void* n_threads_simulation(void* ptr_args)
 		direction dir = UNKNOWN_DIR;
 		
 		for (int m = 0; m < NB_MOVES; ++m) {
-		    int x = field.people[p].origin_x + moves[m].x;
-		    int y = field.people[p].origin_y + moves[m].y;
-
 		    if (can_move(&field, field.people[p], m)) {
+			int x = field.people[p].origin_x + moves[m].x;
+			int y = field.people[p].origin_y + moves[m].y;
+
 			float dist = distance_to_azimuth(x, y);
 			
 			if (min_dist == 0 || dist < min_dist) {
@@ -261,7 +253,6 @@ void* n_threads_simulation(void* ptr_args)
 		    continue;
 				
 		move_person(&field, p, dir);
-		//printf("p%d : (%d, %d)\n", p, field.people[p].origin_x, field.people[p].origin_y);
 		
 		if (field.people[p].origin_x == 0) {
 		    field.people[p].status = OUT;
@@ -274,14 +265,14 @@ void* n_threads_simulation(void* ptr_args)
 	SDL_Delay(25);
 	#endif
     }
-
-    printf("i = %d\n", i);
     
     return NULL;
 }
 
-void start_simulation(unsigned population, scenario sc) {
+void start_simulation(unsigned population, scenario sc, int print_duration) {
     int thread_status = 0;
+    clock_t timecpu_before = 0;
+    time_t timeuser_before = 0;
     
     #ifdef GUI
       rgb_color colors[population];
@@ -300,20 +291,25 @@ void start_simulation(unsigned population, scenario sc) {
     init_grid(&field, DEFAULT_GRID_WIDTH, DEFAULT_GRID_HEIGHT);
     populate_field(&field, population);
 
+    if (print_duration) {
+	timeuser_before = time(NULL);
+	timecpu_before = clock();
+    }
+    
     if (sc == ONE_THREAD) {
 	thread_args args;
 	#ifdef GUI
 	  args.renderer = renderer;
 	  args.colors = colors;
-	#endif
+        #endif
 	one_thread_simulation(args);
     } else if (sc == FOUR_THREADS) {
 	pthread_t thread[4];
 	thread_args t_args[4];
-	
+
 	for (unsigned i = 0; i < 4; ++i) {
 	    t_args[i].zone = i;
-
+	    
 	    thread_status = pthread_create(&thread[i], NULL,
 					   &four_threads_simulation, (void*) &t_args[i]);
 
@@ -337,7 +333,7 @@ void start_simulation(unsigned population, scenario sc) {
     } else if (sc == N_THREADS) {
 	thread_args t_args[population];
 	pthread_t thread[population];
-	
+
 	for (unsigned i = 0; i < population; ++i) {
 	    t_args[i].person_id = i;
 	    thread_status = pthread_create(&thread[i], NULL,
@@ -350,6 +346,18 @@ void start_simulation(unsigned population, scenario sc) {
 	}
 
 #ifdef GUI
+	while (SDL_PollEvent(&e) != 0) {
+	    if( e.type == SDL_QUIT ) {
+		printf("foo\n");
+		for (int i = 0; i < population; ++i) {
+		    printf("%d\n", i);
+		    pthread_cancel(thread[i]);
+		}
+		return;
+		
+	    }
+	}
+
 	while (! is_finished(&field)) {	
 	    SDL_SetRenderDrawColor(renderer, 0xFF, 0xFF, 0xFF, 0xFF);
 	    SDL_RenderClear(renderer);
@@ -362,6 +370,12 @@ void start_simulation(unsigned population, scenario sc) {
     } else {
 	fprintf(stderr, "Unknown scenario : %d\n", sc);
 	exit(EXIT_FAILURE);
+    }
+
+    if (print_duration) {
+	printf("Execution time : \n");
+	printf("CPU : %f\n", (float) (clock() - timecpu_before) / CLOCKS_PER_SEC);
+	printf("User : %f\n", (float) (time(NULL) - timeuser_before));
     }
 
 #ifdef GUI
