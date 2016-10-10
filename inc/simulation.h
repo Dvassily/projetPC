@@ -38,7 +38,7 @@ typedef struct {
     #endif // GUI
 } thread_args;
 
-void start_simulation(unsigned population, scenario sc);
+void start_simulation(unsigned population, scenario sc, int print_duration);
 double distance_to_azimuth(int x, int y);
 
 #endif // SIMULATION_H
