@@ -21,8 +21,8 @@ EZConcurrency Project
 #define DEFAULT_WALL_2_X                111
 #define DEFAULT_PEOPLE_SIZE             4
 #define DEFAULT_MAX_PEOPLE_IN_GRID      512
-#define AZIMUTH_X  -4
-#define AZIMUTH_Y  63
+#define AZIMUTH_X  0
+#define AZIMUTH_Y  64
 
 /*
 #define DEFAULT_GRID_WIDTH              192
