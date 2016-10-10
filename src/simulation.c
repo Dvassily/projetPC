@@ -1,4 +1,5 @@
 #include <pthread.h>
+#include <sys/resource.h>
 #include <stdlib.h>
 #include <stdbool.h>
 #include <math.h>
@@ -271,8 +272,10 @@ void* n_threads_simulation(void* ptr_args)
 
 void start_simulation(unsigned population, scenario sc, int print_duration) {
     int thread_status = 0;
-    clock_t timecpu_before = 0;
-    time_t timeuser_before = 0;
+    //clock_t timecpu_before = 0;
+    //time_t timeuser_before = 0;
+    struct timeval start, end;
+    struct rusage usage;
     
     #ifdef GUI
       rgb_color colors[population];
@@ -292,8 +295,10 @@ void start_simulation(unsigned population, scenario sc, int print_duration) {
     populate_field(&field, population);
 
     if (print_duration) {
-	timeuser_before = time(NULL);
-	timecpu_before = clock();
+	//timeuser_before = time(NULL);
+	//timecpu_before = clock();
+	getrusage(RUSAGE_SELF, &usage);
+	start = usage.ru_utime;
     }
     
     if (sc == ONE_THREAD) {
@@ -373,9 +378,13 @@ void start_simulation(unsigned population, scenario sc, int print_duration) {
     }
 
     if (print_duration) {
-	printf("Execution time : \n");
-	printf("CPU : %f\n", (float) (clock() - timecpu_before) / CLOCKS_PER_SEC);
-	printf("User : %f\n", (float) (time(NULL) - timeuser_before));
+	getrusage(RUSAGE_SELF, &usage);
+	end = usage.ru_utime;
+	//printf("Execution time : \n");
+	//printf("CPU : %f\n", (float) (clock() - timecpu_before) / CLOCKS_PER_SEC);
+	//printf("%f\n", (float) (clock() - timecpu_before) / CLOCKS_PER_SEC);
+	printf("Total time taken by CPU: %fs\n", (double)(end.tv_sec - start.tv_sec) + (end.tv_usec - start.tv_usec) / 1e6);
+	//printf("User : %f\n", (float) (time(NULL) - timeuser_before));
     }
 
 #ifdef GUI
