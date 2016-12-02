@@ -1,6 +1,7 @@
 #ifndef SIMULATION_H
 #define SIMULATION_H
 
+#include <list>
 
 #ifdef GUI
   #include <SDL2/SDL.h>
@@ -30,11 +31,13 @@ typedef struct {
 
 typedef struct {
     field_zone zone;
-    int person_id;
+    unsigned person_id;
+    std::list<int> *responsability;
+    std::list<int> *exiting;
+    
     #ifdef GUI
       SDL_Window* window;
       SDL_Renderer* renderer;
-      struct rgb_color* colors;
     #endif // GUI
 } thread_args;
 

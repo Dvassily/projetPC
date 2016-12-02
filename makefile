@@ -1,7 +1,7 @@
 # TODO : change makefile
 
 EXE=executable.exe
-CC=gcc -std=c99
+CC=g++ -std=c++11
 FLAGS=-Wall -pthread -lm -g -lSDL2 #-DGUI
 DSRC=src/
 DOBJ=obj/

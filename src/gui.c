@@ -44,7 +44,7 @@ void generate_colors(rgb_color colors[], int number)
     }
 }
 
-void update(SDL_Renderer* renderer, struct grid* field, rgb_color colors[]) {
+void update(SDL_Renderer* renderer, struct grid* field) {
     SDL_SetRenderDrawColor(renderer, 0xFF, 0xFF, 0xFF, 0xFF);
     SDL_RenderClear(renderer);
 
@@ -60,16 +60,14 @@ void update(SDL_Renderer* renderer, struct grid* field, rgb_color colors[]) {
 		color.red = 0x00; color.green = 0x00; color.blue = 0x00;
 		break;
 	    case PERSON:
-		//printf("-> (%d %d)\n", i, j);
-		for (int p = 0; p < field->person_count; ++p) {
-		    //printf("[%d %d]\n", field->people[p].origin_x, field->people[p].origin_y);
+		for (unsigned p = 0; p < field->person_count; ++p) {
 		    if ((i >= field->people[p].origin_x && i < field->people[p].origin_x + 4) &&
 			(j >= field->people[p].origin_y && j < field->people[p].origin_y + 4)) {
-			//printf("foo\n");
-			color = colors[p];
+			color.red = field->people[p].red_color;
+			color.green = field->people[p].green_color;
+			color.blue = field->people[p].blue_color;
 		    }
 		}
-		//printf("%d %d %d\n", color.red, color.green, color.blue);
 		
 		break;
 	    }
@@ -122,7 +120,7 @@ int _main(int argc, char *argv[]) {
 	SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0x00, 0x00);
 	SDL_RenderDrawRect(renderer, &rectToDraw);
 	*/
-	update(renderer, &field, colors);
+	update(renderer, &field);
 	
 	// Update window
 	SDL_RenderPresent(renderer);

@@ -67,6 +67,9 @@ typedef struct {
     int origin_x;
     int origin_y;
     person_status status;
+    unsigned short red_color;
+    unsigned short green_color;
+    unsigned short blue_color;
 } person;
 
 //Grid structure
@@ -74,7 +77,7 @@ typedef struct grid {
     int height;
     int width;
     cell matrix[DEFAULT_GRID_WIDTH][DEFAULT_GRID_HEIGHT];
-    int person_count;
+    unsigned person_count;
     person people[DEFAULT_MAX_PEOPLE_IN_GRID];
 } grid;
 

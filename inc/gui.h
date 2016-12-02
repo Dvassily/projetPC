@@ -13,6 +13,6 @@ typedef struct rgb_color {
 
 void generate_colors(rgb_color colors[], int number);
 bool init(SDL_Window** window, SDL_Renderer** renderer);
-void update(SDL_Renderer* renderer, struct grid* field, rgb_color colors[]);
+void update(SDL_Renderer* renderer, struct grid* field);
 
 #endif // __GUI_H__

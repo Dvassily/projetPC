@@ -26,7 +26,7 @@ int main (int argc, char *argv[])
 	    population = pow(2, atoi(optarg));
             break;
         case 't':
-            scenario = atoi(optarg);
+	    scenario = (::scenario) atoi(optarg);
             break;
         default:
             printf("Unknown option : %c\n", c);

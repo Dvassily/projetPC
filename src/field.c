@@ -109,10 +109,13 @@ void populate_field(grid* field, int people) {
 }
 
 
-void init_person(person* a_person, int x, int y){
-    a_person->origin_x = x;
-    a_person->origin_y = y;
-    a_person->status = IN;
+void init_person(person* p, int x, int y){
+    p->origin_x = x;
+    p->origin_y = y;
+    p->status = IN;
+    p->red_color   = rand() % (255 - 50 + 1) + 50;
+    p->green_color = rand() % (255 - 50 + 1) + 50;
+    p->blue_color  = rand() % (255 - 50 + 1) + 50;
 }
 
 void delete_person(grid * grid, int person) {
