@@ -1,3 +1,4 @@
+#include <pthread.h>
 #include "../inc/four-threads-simulation-no-synchro.h"
 
 void dispatch(grid* field, std::list<int> exiting[], std::list<int> responsability[]) {
@@ -106,4 +107,50 @@ void* four_threads_simulation(void* ptr_args)
     }
 
     return NULL;
+}
+
+void start_four_threads_simulation_no_synchro(grid* field) {
+    int thread_status = 0;
+
+    pthread_t thread[4];
+    thread_args t_args[4];
+    std::list<int> responsability[4];
+    std::list<int> exiting[4];
+
+    for (unsigned i = 0; i < 4; ++i) {
+	t_args[i].field = field;
+	t_args[i].zone = (::field_zone) i;
+	t_args[i].responsability = &responsability[i];
+	t_args[i].exiting = &exiting[i];
+	    
+	thread_status = pthread_create(&thread[i], NULL,
+				       &four_threads_simulation, (void*) &t_args[i]);
+
+	if (thread_status) {
+	    fprintf(stderr, "Error creating thread\n");
+	    exit(EXIT_FAILURE);
+	}
+    }
+
+    while (! is_finished(field)) {
+	dispatch(field, exiting, responsability);
+#ifdef GUI
+	while (SDL_PollEvent(&e) != 0) {
+	    if( e.type == SDL_QUIT ) {
+		for (unsigned i = 0; i < 4; ++i) {
+		    pthread_cancel(thread[i]);
+		}
+		return;
+	    }
+	}
+
+	SDL_SetRenderDrawColor(renderer, 0xFF, 0xFF, 0xFF, 0xFF);
+	SDL_RenderClear(renderer);
+	update(renderer, field);
+	SDL_RenderPresent(renderer);
+#endif
+    }
+
+    for (unsigned i = 0; i < 4; ++i)
+	pthread_join(thread[i], NULL); // retval?
 }

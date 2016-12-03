@@ -1,3 +1,4 @@
+#include <pthread.h>
 #include "../inc/n-threads-simulation-no-synchro.h"
 
 void* n_threads_simulation(void* ptr_args)
@@ -47,4 +48,46 @@ void* n_threads_simulation(void* ptr_args)
     }
     
     return NULL;
+}
+
+void start_n_threads_simulation_no_synchro(grid* field) {
+    int thread_status = 0;
+    
+
+    thread_args t_args[field->person_count];
+    pthread_t thread[field->person_count];
+
+    for (unsigned i = 0; i < field->person_count; ++i) {
+	t_args[i].person_id = i;
+	t_args[i].field = field;
+	thread_status = pthread_create(&thread[i], NULL,
+				       &n_threads_simulation, (void*) &t_args[i]);
+	    
+	if (thread_status) {
+	    fprintf(stderr, "Error creating thread\n");
+	    exit(EXIT_FAILURE);
+	}
+    }
+
+#ifdef GUI
+    while (SDL_PollEvent(&e) != 0) {
+	if( e.type == SDL_QUIT ) {
+	    for (unsigned i = 0; i < field->person_count; ++i) {
+		pthread_cancel(thread[i]);
+	    }
+	    return;
+		
+	}
+    }
+
+    while (! is_finished(field)) {	
+	SDL_SetRenderDrawColor(renderer, 0xFF, 0xFF, 0xFF, 0xFF);
+	SDL_RenderClear(renderer);
+	update(renderer, field);
+	SDL_RenderPresent(renderer);
+    }
+#endif
+    for (unsigned i = 0; i < field->person_count; ++i)
+	pthread_join(thread[i], NULL); // retval?
+
 }

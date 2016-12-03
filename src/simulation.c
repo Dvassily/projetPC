@@ -156,8 +156,6 @@ void start_simulation(grid* field, scenario sc
 		      , SDL_Renderer* renderer
                       #endif
 		      ) {
-    int thread_status = 0;
-    
     if (sc == ONE_THREAD) {
 	one_thread_simulation(field
                               #ifdef GUI
@@ -166,83 +164,9 @@ void start_simulation(grid* field, scenario sc
 			      );
 	
     } else if (sc == FOUR_THREADS) {
-	pthread_t thread[4];
-	thread_args t_args[4];
-	std::list<int> responsability[4];
-	std::list<int> exiting[4];
-
-	for (unsigned i = 0; i < 4; ++i) {
-	    t_args[i].field = field;
-	    t_args[i].zone = (::field_zone) i;
-	    t_args[i].responsability = &responsability[i];
-	    t_args[i].exiting = &exiting[i];
-	    
-	    thread_status = pthread_create(&thread[i], NULL,
-					   &four_threads_simulation, (void*) &t_args[i]);
-
-	    if (thread_status) {
-		fprintf(stderr, "Error creating thread\n");
-		exit(EXIT_FAILURE);
-	    }
-	}
-
-	while (! is_finished(field)) {
-	    dispatch(field, exiting, responsability);
-#ifdef GUI
-	    while (SDL_PollEvent(&e) != 0) {
-		if( e.type == SDL_QUIT ) {
-		    for (unsigned i = 0; i < 4; ++i) {
-			pthread_cancel(thread[i]);
-		    }
-		    return;
-	    }
-	}
-
-	    SDL_SetRenderDrawColor(renderer, 0xFF, 0xFF, 0xFF, 0xFF);
-	    SDL_RenderClear(renderer);
-	    update(renderer, field);
-	    SDL_RenderPresent(renderer);
-#endif
-	}
-
-	for (unsigned i = 0; i < 4; ++i)
-	    pthread_join(thread[i], NULL); // retval?
+	start_four_threads_simulation_no_synchro(field);
     } else if (sc == N_THREADS) {
-	thread_args t_args[field->person_count];
-	pthread_t thread[field->person_count];
-
-	for (unsigned i = 0; i < field->person_count; ++i) {
-	    t_args[i].person_id = i;
-	    t_args[i].field = field;
-	    thread_status = pthread_create(&thread[i], NULL,
-					   &n_threads_simulation, (void*) &t_args[i]);
-	    
-	    if (thread_status) {
-		fprintf(stderr, "Error creating thread\n");
-		exit(EXIT_FAILURE);
-	    }
-	}
-
-#ifdef GUI
-	while (SDL_PollEvent(&e) != 0) {
-	    if( e.type == SDL_QUIT ) {
-		for (unsigned i = 0; i < field->person_count; ++i) {
-		    pthread_cancel(thread[i]);
-		}
-		return;
-		
-	    }
-	}
-
-	while (! is_finished(field)) {	
-	    SDL_SetRenderDrawColor(renderer, 0xFF, 0xFF, 0xFF, 0xFF);
-	    SDL_RenderClear(renderer);
-	    update(renderer, field);
-	    SDL_RenderPresent(renderer);
-	}
-#endif
-	for (unsigned i = 0; i < field->person_count; ++i)
-	    pthread_join(thread[i], NULL); // retval?
+	start_n_threads_simulation_no_synchro(field);
     } else {
 	fprintf(stderr, "Unknown scenario : %d\n", sc);
 	exit(EXIT_FAILURE);
