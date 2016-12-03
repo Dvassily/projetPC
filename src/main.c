@@ -16,6 +16,7 @@ int main (int argc, char *argv[])
     int print_duration = 0;
     scenario scenario = UNKNOWN_SCE;
     unsigned population = 0;
+    step step = UNKNOWN_STEP;
     clock_t timecpu_before = 0;
     time_t timeuser_before = 0;
     
@@ -23,7 +24,7 @@ int main (int argc, char *argv[])
     // TODO :
     // - detect incorrect parameter value (ex : string à la place de int)
     char c;
-    while ((c = getopt (argc, argv, "mt:p:")) != -1){
+    while ((c = getopt (argc, argv, "me:t:p:")) != -1){
 	switch(c){
         case 'm':
             print_duration = 1;
@@ -33,6 +34,9 @@ int main (int argc, char *argv[])
             break;
         case 't':
 	    scenario = (::scenario) atoi(optarg);
+            break;
+	case 'e':
+	    step = (::step) atoi(optarg);
             break;
         default:
             printf("Unknown option : %c\n", c);
@@ -51,7 +55,11 @@ int main (int argc, char *argv[])
 	exit(EXIT_FAILURE);	
     }
 
-        
+    if (step == UNKNOWN_STEP) {
+	fprintf(stderr, "Missing parameter -e\n");
+	exit(EXIT_FAILURE);
+    }
+
     // Field initialisation
     init_grid(&field, DEFAULT_GRID_WIDTH, DEFAULT_GRID_HEIGHT);
     populate_field(&field, population);
@@ -71,7 +79,7 @@ int main (int argc, char *argv[])
 	timecpu_before = clock();
     }
     
-    start_simulation(&field, scenario
+    start_simulation(&field, scenario, step
 #ifdef GUI
 		     , renderer
 #endif // GUI

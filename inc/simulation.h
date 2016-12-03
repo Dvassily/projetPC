@@ -2,7 +2,9 @@
 #define SIMULATION_H
 
 #include <list>
+#include <semaphore.h>
 #include "field.h"
+#include "four-threads-simulation-synchro-sem.h"
 
 #ifdef GUI
   #include <SDL2/SDL.h>
@@ -25,6 +27,12 @@ typedef enum {
     ONE_THREAD, FOUR_THREADS, N_THREADS
 } scenario;
 
+typedef enum {
+    UNKNOWN_STEP = 0,
+    STEP_ONE, STEP_TWO, STEP_THREE
+} step;
+
+
 typedef struct {
     int x;
     int y;
@@ -36,16 +44,25 @@ typedef struct {
     struct grid* field;
     field_zone zone;
     unsigned person_id;
+    // List of the index of persons who are under the responsability of current thread
     std::list<int> *responsability;
+
+    // List of the index of persons who are pending for being reassigned to another thread
     std::list<int> *exiting;
     
-    #ifdef GUI
+    // Semaphore to lock the modification of the exiting list of the current thread
+    sem_t* exiting_lock;
+
+    // Semaphore which prevent the main thread to progress until the four threads are not finished
+    sem_t* end_of_thread;
+
+#ifdef GUI
       SDL_Window* window;
       SDL_Renderer* renderer;
     #endif // GUI
 } thread_args;
 
-void start_simulation(grid* field, scenario sc
+void start_simulation(grid* field, scenario sc, step step
 #ifdef GUI
 		      , SDL_Renderer* renderer
 #endif
@@ -56,19 +73,29 @@ bool can_move(grid * field, struct person person, direction d);
 void move_person(grid * field, unsigned p, direction d);
 
 #ifdef GUI
+// step 1
 #define START_ONE_THREAD_SIMULATION(field, renderer)	\
     one_thread_simulation(field, renderer);
 #define START_FOUR_THREADS_SIMULATION_NO_SYNCHRO(field, renderer)	\
     start_four_threads_simulation_no_synchro(field, renderer);
 #define START_N_THREADS_SIMULATION_NO_SYNCHRO(field, renderer)	\
     start_n_threads_simulation_no_synchro(field, renderer);
+
+// step 2
+#define START_FOUR_THREADS_SIMULATION_SYNCHRO_SEM(field, renderer)	\
+    start_four_threads_simulation_synchro_sem(field, renderer);
 #else
+// step 1
 #define START_ONE_THREAD_SIMULATION(field, renderer)	\
     one_thread_simulation(field);
 #define START_FOUR_THREADS_SIMULATION_NO_SYNCHRO(field, renderer)	\
     start_four_threads_simulation_no_synchro(field);
 #define START_N_THREADS_SIMULATION_NO_SYNCHRO(field, renderer)	\
     start_n_threads_simulation_no_synchro(field);
+
+// step 2
+#define START_FOUR_THREADS_SIMULATION_SYNCHRO_SEM(field, renderer)	\
+    start_four_threads_simulation_synchro_sem(field);
 #endif // GUI
 
 

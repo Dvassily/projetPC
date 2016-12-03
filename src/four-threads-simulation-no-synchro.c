@@ -115,6 +115,7 @@ void* four_threads_simulation(void* ptr_args)
   void start_four_threads_simulation_no_synchro(grid* field)
 #endif // GUI
 {
+    printf("Etape 1\n");
     int thread_status = 0;
 
     pthread_t thread[4];

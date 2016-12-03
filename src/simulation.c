@@ -151,19 +151,32 @@ void one_thread_simulation(grid* field
     }
 }
 
-void start_simulation(grid* field, scenario sc
+void start_simulation(grid* field, scenario sc, step step
                       #ifdef GUI
 		      , SDL_Renderer* renderer
                       #endif
 		      ) {
-    if (sc == ONE_THREAD) {
-	START_ONE_THREAD_SIMULATION(field, renderer);
-    } else if (sc == FOUR_THREADS) {
-	START_FOUR_THREADS_SIMULATION_NO_SYNCHRO(field, renderer)
-    } else if (sc == N_THREADS) {
-	START_N_THREADS_SIMULATION_NO_SYNCHRO(field, renderer)
-    } else {
-	fprintf(stderr, "Unknown scenario : %d\n", sc);
-	exit(EXIT_FAILURE);
+    if (step == STEP_ONE) {
+	if (sc == ONE_THREAD) {
+	    START_ONE_THREAD_SIMULATION(field, renderer);
+	} else if (sc == FOUR_THREADS) {
+	    START_FOUR_THREADS_SIMULATION_NO_SYNCHRO(field, renderer);
+	} else if (sc == N_THREADS) {
+	    START_N_THREADS_SIMULATION_NO_SYNCHRO(field, renderer);
+	} else {
+	    fprintf(stderr, "Unknown scenario : %d\n", sc);
+	    exit(EXIT_FAILURE);
+	}
+    } else if (step == STEP_TWO) {
+	if (sc == ONE_THREAD) {
+	    START_ONE_THREAD_SIMULATION(field, renderer);
+	} else if (sc == FOUR_THREADS) {
+	    START_FOUR_THREADS_SIMULATION_SYNCHRO_SEM(field, renderer);
+	    //} else if (sc == N_THREADS) {
+	    //START_N_THREADS_SIMULATION_SYNCHRO_SEM(field, renderer);
+	} else {
+	    fprintf(stderr, "Unknown scenario : %d\n", sc);
+	    exit(EXIT_FAILURE);
+	}
     }
 }

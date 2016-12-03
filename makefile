@@ -7,7 +7,8 @@ DSRC=src/
 DOBJ=obj/
 DINC=inc/
 
-OBJ=$(DOBJ)field.o $(DOBJ)main.o $(DOBJ)simulation.o $(DOBJ)gui.o $(DOBJ)four-threads-simulation-no-synchro.o $(DOBJ)n-threads-simulation-no-synchro.o
+#OBJ=$(DOBJ)field.o $(DOBJ)main.o $(DOBJ)simulation.o $(DOBJ)gui.o $(DOBJ)four-threads-simulation-no-synchro.o $(DOBJ)n-threads-simulation-no-synchro.o $(DOBJ)four-threads-simulation-synchro-sem.o $(DOBJ)n-threads-simulation-synchro-sem.o
+OBJ=$(DOBJ)field.o $(DOBJ)main.o $(DOBJ)simulation.o $(DOBJ)gui.o $(DOBJ)four-threads-simulation-no-synchro.o $(DOBJ)n-threads-simulation-no-synchro.o $(DOBJ)four-threads-simulation-synchro-sem.o #$(DOBJ)n-threads-simulation-synchro-sem.o
 
 $(EXE):$(OBJ)
 	$(CC) $(FLAGS) $(OBJ) -o $(EXE)
@@ -28,6 +29,12 @@ $(DOBJ)four-threads-simulation-no-synchro.o:$(DSRC)four-threads-simulation-no-sy
 	$(CC) $(FLAGS) -c $< -o $@ 
 
 $(DOBJ)n-threads-simulation-no-synchro.o:$(DSRC)n-threads-simulation-no-synchro.c $(DINC)n-threads-simulation-no-synchro.h $(DINC)field.h
+	$(CC) $(FLAGS) -c $< -o $@ 
+
+$(DOBJ)four-threads-simulation-synchro-sem.o:$(DSRC)four-threads-simulation-synchro-sem.c $(DINC)four-threads-simulation-synchro-sem.h $(DINC)field.h
+	$(CC) $(FLAGS) -c $< -o $@ 
+
+$(DOBJ)n-threads-simulation-synchro-sem.o:$(DSRC)n-threads-simulation-synchro-sem.c $(DINC)n-threads-simulation-synchro-sem.h $(DINC)field.h
 	$(CC) $(FLAGS) -c $< -o $@ 
 
 
