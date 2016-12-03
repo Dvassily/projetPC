@@ -164,17 +164,9 @@ void start_simulation(grid* field, scenario sc
 			      );
 	
     } else if (sc == FOUR_THREADS) {
-#ifdef GUI
-	start_four_threads_simulation_no_synchro(field, renderer);
-#else
-	start_four_threads_simulation_no_synchro(field);	
-#endif // GUI
+	START_FOUR_THREADS_SIMULATION_NO_SYNCHRO(field, renderer)
     } else if (sc == N_THREADS) {
-#ifdef GUI
-	start_n_threads_simulation_no_synchro(field, renderer);
-#else
-	start_n_threads_simulation_no_synchro(field);	
-#endif // GUI
+	START_N_THREADS_SIMULATION_NO_SYNCHRO(field, renderer)
     } else {
 	fprintf(stderr, "Unknown scenario : %d\n", sc);
 	exit(EXIT_FAILURE);
