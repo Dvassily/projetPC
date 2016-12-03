@@ -109,7 +109,12 @@ void* four_threads_simulation(void* ptr_args)
     return NULL;
 }
 
-void start_four_threads_simulation_no_synchro(grid* field) {
+#ifdef GUI
+  void start_four_threads_simulation_no_synchro(grid* field, SDL_Renderer* renderer)
+#else
+  void start_four_threads_simulation_no_synchro(grid* field)
+#endif // GUI
+{
     int thread_status = 0;
 
     pthread_t thread[4];
@@ -135,6 +140,8 @@ void start_four_threads_simulation_no_synchro(grid* field) {
     while (! is_finished(field)) {
 	dispatch(field, exiting, responsability);
 #ifdef GUI
+	SDL_Event e;
+
 	while (SDL_PollEvent(&e) != 0) {
 	    if( e.type == SDL_QUIT ) {
 		for (unsigned i = 0; i < 4; ++i) {

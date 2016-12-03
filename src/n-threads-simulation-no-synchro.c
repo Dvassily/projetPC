@@ -50,10 +50,14 @@ void* n_threads_simulation(void* ptr_args)
     return NULL;
 }
 
-void start_n_threads_simulation_no_synchro(grid* field) {
+#ifdef GUI
+  void start_n_threads_simulation_no_synchro(grid* field, SDL_Renderer* renderer)
+#else
+  void start_n_threads_simulation_no_synchro(grid* field)
+#endif // GUI
+{
     int thread_status = 0;
     
-
     thread_args t_args[field->person_count];
     pthread_t thread[field->person_count];
 
@@ -70,6 +74,8 @@ void start_n_threads_simulation_no_synchro(grid* field) {
     }
 
 #ifdef GUI
+    SDL_Event e;
+
     while (SDL_PollEvent(&e) != 0) {
 	if( e.type == SDL_QUIT ) {
 	    for (unsigned i = 0; i < field->person_count; ++i) {
