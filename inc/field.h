@@ -63,7 +63,7 @@ typedef enum {
  |_|_|
  The origin point of a person is located in the upper-left corner
  */
-typedef struct {
+typedef struct person {
     int origin_x;
     int origin_y;
     person_status status;

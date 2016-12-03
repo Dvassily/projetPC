@@ -2,6 +2,7 @@
 #define SIMULATION_H
 
 #include <list>
+#include "field.h"
 
 #ifdef GUI
   #include <SDL2/SDL.h>
@@ -29,7 +30,10 @@ typedef struct {
     int y;
 } move;
 
+extern move moves[];
+
 typedef struct {
+    struct grid* field;
     field_zone zone;
     unsigned person_id;
     std::list<int> *responsability;
@@ -41,7 +45,14 @@ typedef struct {
     #endif // GUI
 } thread_args;
 
-void start_simulation(unsigned population, scenario sc, int print_duration);
+void start_simulation(grid* field, scenario sc
+#ifdef GUI
+		      , SDL_Renderer* renderer
+#endif
+		      );
 double distance_to_azimuth(int x, int y);
+int is_finished(grid * field);
+bool can_move(grid * field, struct person person, direction d);
+void move_person(grid * field, unsigned p, direction d);
 
 #endif // SIMULATION_H
