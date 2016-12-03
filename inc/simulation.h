@@ -56,11 +56,15 @@ bool can_move(grid * field, struct person person, direction d);
 void move_person(grid * field, unsigned p, direction d);
 
 #ifdef GUI
+#define START_ONE_THREAD_SIMULATION(field, renderer)	\
+    one_thread_simulation(field, renderer);
 #define START_FOUR_THREADS_SIMULATION_NO_SYNCHRO(field, renderer)	\
     start_four_threads_simulation_no_synchro(field, renderer);
 #define START_N_THREADS_SIMULATION_NO_SYNCHRO(field, renderer)	\
     start_n_threads_simulation_no_synchro(field, renderer);
 #else
+#define START_ONE_THREAD_SIMULATION(field, renderer)	\
+    one_thread_simulation(field);
 #define START_FOUR_THREADS_SIMULATION_NO_SYNCHRO(field, renderer)	\
     start_four_threads_simulation_no_synchro(field);
 #define START_N_THREADS_SIMULATION_NO_SYNCHRO(field, renderer)	\

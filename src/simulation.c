@@ -157,12 +157,7 @@ void start_simulation(grid* field, scenario sc
                       #endif
 		      ) {
     if (sc == ONE_THREAD) {
-	one_thread_simulation(field
-                              #ifdef GUI
-			        , renderer
-                              #endif
-			      );
-	
+	START_ONE_THREAD_SIMULATION(field, renderer);
     } else if (sc == FOUR_THREADS) {
 	START_FOUR_THREADS_SIMULATION_NO_SYNCHRO(field, renderer)
     } else if (sc == N_THREADS) {
