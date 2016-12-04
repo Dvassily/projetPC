@@ -124,13 +124,13 @@ void start_four_threads_simulation_synchro_sem(grid* field, SDL_Renderer* render
 void start_four_threads_simulation_synchro_sem(grid* field)
 #endif // GUI
 {
-    printf("Etape 2\n");
     int thread_status = 0;
 
     pthread_t thread[4];
     thread_args t_args[4];
     std::list<int> responsability[4];
     std::list<int> exiting[4];
+    //sem_t responsability_lock[4];
     sem_t exiting_lock[4];
     sem_t end_of_thread[4];
     
@@ -159,6 +159,8 @@ void start_four_threads_simulation_synchro_sem(grid* field)
     while (! is_finished(field)) {
 	dispatch_synchro_sem(field, exiting, responsability, exiting_lock);
 #ifdef GUI
+	SDL_Event e;
+
 	while (SDL_PollEvent(&e) != 0) {
 	    if( e.type == SDL_QUIT ) {
 		for (unsigned i = 0; i < 4; ++i) {

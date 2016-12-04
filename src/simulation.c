@@ -172,8 +172,8 @@ void start_simulation(grid* field, scenario sc, step step
 	    START_ONE_THREAD_SIMULATION(field, renderer);
 	} else if (sc == FOUR_THREADS) {
 	    START_FOUR_THREADS_SIMULATION_SYNCHRO_SEM(field, renderer);
-	    //} else if (sc == N_THREADS) {
-	    //START_N_THREADS_SIMULATION_SYNCHRO_SEM(field, renderer);
+	} else if (sc == N_THREADS) {
+	    START_N_THREADS_SIMULATION_SYNCHRO_SEM(field, renderer);
 	} else {
 	    fprintf(stderr, "Unknown scenario : %d\n", sc);
 	    exit(EXIT_FAILURE);

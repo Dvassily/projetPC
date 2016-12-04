@@ -5,6 +5,7 @@
 #include <semaphore.h>
 #include "field.h"
 #include "four-threads-simulation-synchro-sem.h"
+#include "n-threads-simulation-synchro-sem.h"
 
 #ifdef GUI
   #include <SDL2/SDL.h>
@@ -47,10 +48,13 @@ typedef struct {
     // List of the index of persons who are under the responsability of current thread
     std::list<int> *responsability;
 
+    // Semaphore to lock the modification of the 'responsability' list of the current thread
+    sem_t* responsability_lock;
+
     // List of the index of persons who are pending for being reassigned to another thread
     std::list<int> *exiting;
     
-    // Semaphore to lock the modification of the exiting list of the current thread
+    // Semaphore to lock the modification of the 'exiting' list of the current thread
     sem_t* exiting_lock;
 
     // Semaphore which prevent the main thread to progress until the four threads are not finished
@@ -84,7 +88,10 @@ void move_person(grid * field, unsigned p, direction d);
 // step 2
 #define START_FOUR_THREADS_SIMULATION_SYNCHRO_SEM(field, renderer)	\
     start_four_threads_simulation_synchro_sem(field, renderer);
+#define START_N_THREADS_SIMULATION_SYNCHRO_SEM(field, renderer)	\
+    start_n_threads_simulation_synchro_sem(field, renderer);
 #else
+
 // step 1
 #define START_ONE_THREAD_SIMULATION(field, renderer)	\
     one_thread_simulation(field);
@@ -96,8 +103,8 @@ void move_person(grid * field, unsigned p, direction d);
 // step 2
 #define START_FOUR_THREADS_SIMULATION_SYNCHRO_SEM(field, renderer)	\
     start_four_threads_simulation_synchro_sem(field);
+#define START_N_THREADS_SIMULATION_SYNCHRO_SEM(field, renderer)	\
+    start_n_threads_simulation_synchro_sem(field);
 #endif // GUI
-
-
 
 #endif // SIMULATION_H
