@@ -1,3 +1,4 @@
+#ifdef GUI
 #include <SDL2/SDL.h>
 #include <stdio.h>
 #include <stdbool.h>
@@ -51,7 +52,7 @@ void update(SDL_Renderer* renderer, struct grid* field) {
     for (int i = 0; i < field->width; ++i) {
 	for (int j = 0; j < field->height; ++j) {
 	    rgb_color color;
-	    
+
 	    switch(field->matrix[i][j].content) {
 	    case EMPTY:
 		color.red = 0xFF; color.green = 0xFF; color.blue = 0xFF;
@@ -68,13 +69,13 @@ void update(SDL_Renderer* renderer, struct grid* field) {
 			color.blue = field->people[p].blue_color;
 		    }
 		}
-		
+
 		break;
 	    }
 
 	    SDL_Rect rectToDraw = {SCALE * i, SCALE * j, SCALE, SCALE};
 	    SDL_SetRenderDrawColor(renderer, color.red, color.green, color.blue, 0xFF);
-	    SDL_RenderFillRect(renderer, &rectToDraw);	
+	    SDL_RenderFillRect(renderer, &rectToDraw);
 	}
     }
 
@@ -89,10 +90,10 @@ int _main(int argc, char *argv[]) {
     generate_colors(colors, population);
     init_grid(&field, DEFAULT_GRID_WIDTH, DEFAULT_GRID_HEIGHT);
     populate_field(&field, population);
-    
+
     SDL_Window* window = NULL;
     SDL_Renderer* renderer = NULL;
-    
+
     if (! init(&window, &renderer)) {
 	printf("GUI initialization failed.\n");
 	return EXIT_FAILURE;
@@ -121,12 +122,12 @@ int _main(int argc, char *argv[]) {
 	SDL_RenderDrawRect(renderer, &rectToDraw);
 	*/
 	update(renderer, &field);
-	
+
 	// Update window
 	SDL_RenderPresent(renderer);
     }
 
-    
+
     return 0;
 }
-
+#endif

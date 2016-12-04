@@ -5,6 +5,7 @@
 #include <semaphore.h>
 #include "field.h"
 #include "four-threads-simulation-synchro-sem.h"
+#include "four-threads-simulation-synchro-monitor.h"
 #include "n-threads-simulation-synchro-sem.h"
 
 #ifdef GUI
@@ -53,7 +54,7 @@ typedef struct {
 
     // List of the index of persons who are pending for being reassigned to another thread
     std::list<int> *exiting;
-    
+
     // Semaphore to lock the modification of the 'exiting' list of the current thread
     sem_t* exiting_lock;
 
@@ -90,6 +91,12 @@ void move_person(grid * field, unsigned p, direction d);
     start_four_threads_simulation_synchro_sem(field, renderer);
 #define START_N_THREADS_SIMULATION_SYNCHRO_SEM(field, renderer)	\
     start_n_threads_simulation_synchro_sem(field, renderer);
+
+// step 3
+#define START_FOUR_THREADS_SIMULATION_SYNCHRO_MONITOR(field, renderer)	\
+    start_four_threads_simulation_synchro_monitor(field, renderer);
+#define START_N_THREADS_SIMULATION_SYNCHRO_MONITOR(field, renderer)	\
+    start_n_threads_simulation_synchro_monitor(field, renderer);
 #else
 
 // step 1
@@ -105,6 +112,12 @@ void move_person(grid * field, unsigned p, direction d);
     start_four_threads_simulation_synchro_sem(field);
 #define START_N_THREADS_SIMULATION_SYNCHRO_SEM(field, renderer)	\
     start_n_threads_simulation_synchro_sem(field);
+
+// step 3
+#define START_FOUR_THREADS_SIMULATION_SYNCHRO_MONITOR(field, renderer)	\
+    start_four_threads_simulation_synchro_monitor(field);
+#define START_N_THREADS_SIMULATION_SYNCHRO_MONITOR(field, renderer)	\
+    start_n_threads_simulation_synchro_monitor(field);
 #endif // GUI
 
 #endif // SIMULATION_H

@@ -65,20 +65,20 @@ bool can_move(grid * field, person person, direction d) {
     } else if (d == W) {
 	for (int i = y; i < y + 4; ++i)
 	    if (field->matrix[x - 1][i].content != EMPTY) return false;
-	
+
     } else if (d == SW) {
 	for (int i = y + 1; i < (y + 1) + 4; ++i)
 	    if (field->matrix[x - 1][i].content != EMPTY) return false;
 	for (int i = x; i < x + 3; ++i)
 	    if (field->matrix[i][y + 4].content != EMPTY) return false;
-	
+
     } else if (d == S) {
 	for (int i = x; i < x + 4; ++i)
 	    if (field->matrix[i][y + 4].content != EMPTY) return false;
-	
+
     } else if (d == UNKNOWN_DIR)
 	return false;
-    
+
     return true;
 }
 
@@ -86,14 +86,14 @@ direction choose_direction(grid * field, int p) {
     double min_dist = distance_to_azimuth(field->people[p].origin_x,
 					  field->people[p].origin_y);
     direction dir = UNKNOWN_DIR;
-		
+
     for (int m = 0; m < NB_MOVES; ++m) {
 	if (can_move(field, field->people[p], (::direction) m)) {
 	    int x = field->people[p].origin_x + moves[m].x;
 	    int y = field->people[p].origin_y + moves[m].y;
 
 	    float dist = distance_to_azimuth(x, y);
-			
+
 	    if (min_dist == 0 || dist < min_dist) {
 		min_dist = dist;
 		dir = (::direction) m;
@@ -111,7 +111,7 @@ int is_finished(grid * field) {
     for (unsigned p = 0; p < field->person_count; ++p)
 	if (field->people[p].status == IN)
 	    return 0;
-    
+
     return 1;
 }
 
@@ -120,7 +120,7 @@ void one_thread_simulation(grid* field
 			     , SDL_Renderer* renderer
                            #endif // GUI
 			   )
-{    
+{
     int i = 0;
     while (! is_finished(field)) {
 	++i;
@@ -128,12 +128,12 @@ void one_thread_simulation(grid* field
 	for (unsigned p = 0; p < field->person_count; ++p) {
 	    if (field->people[p].status == IN) {
 		direction dir = choose_direction(field, p);
-		
+
 		if (dir == UNKNOWN_DIR)
 		    continue;
-		
+
 		move_person(field, p, dir);
-		
+
 		if (field->people[p].origin_x == 0) {
 		    field->people[p].status = OUT;
 		    delete_person(field, p);
@@ -145,7 +145,7 @@ void one_thread_simulation(grid* field
 	while (SDL_PollEvent(&e) != 0)
 	    if( e.type == SDL_QUIT )
 		return;
-	
+
 	update(renderer, field);
 	#endif
     }
@@ -174,7 +174,17 @@ void start_simulation(grid* field, scenario sc, step step
 	    START_FOUR_THREADS_SIMULATION_SYNCHRO_SEM(field, renderer);
 	} else if (sc == N_THREADS) {
 	    START_N_THREADS_SIMULATION_SYNCHRO_SEM(field, renderer);
-	} else {
+	}
+  else if (step == STEP_THREE) {
+if (sc == ONE_THREAD) {
+    START_ONE_THREAD_SIMULATION(field, renderer);
+} else if (sc == FOUR_THREADS) {
+    START_FOUR_THREADS_SIMULATION_SYNCHRO_MONITOR(field, renderer);
+} else if (sc == N_THREADS) {
+  fprintf(stderr, "N_THREADS not implemented yet in scenario : %d\n", sc);
+  exit(EXIT_FAILURE);
+  }
+  else {
 	    fprintf(stderr, "Unknown scenario : %d\n", sc);
 	    exit(EXIT_FAILURE);
 	}
