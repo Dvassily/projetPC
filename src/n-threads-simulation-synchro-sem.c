@@ -15,14 +15,6 @@ void move_prologue(int x, int y) {
     for (int i = y - 1; i <= y + 4; ++i) {
 	sem_wait(&field_lock[x - 1][i]);	
     }
-	
-    /*
-    for (int i = x + 3;  i >= x - 1; --i) {
-	for (int j = y - 1; j < y + 5; ++j) {
-	    //SDL_Delay(6);
-	    sem_wait(&field_lock[i][j]);
-	}
-	}*/
 }
 
 void move_epilogue(int x, int y) {
@@ -35,22 +27,6 @@ void move_epilogue(int x, int y) {
     for (int i = y - 1; i <= y + 4; ++i) {
 	sem_post(&field_lock[x - 1][i]);	
     }
-
-    
-    /*
-    for (int i = x - 1; i < x + 4; ++i) {
-	for (int j = y + 4; j >= y - 1; --j) {
-	    //SDL_Delay(6);
-	    sem_post(&field_lock[i][j]);	    
-	}
-	}*/
-    /*
-    for (int i = x + 3; i >= x - 1; --i) {
-	for (int j = y - 1; j < y + 5; ++j) {
-	    SDL_Delay(6);
-	    sem_post(&field_lock[i][j]);
-	}
-	}*/
 }
 
 void unlock_exit(person p) {
