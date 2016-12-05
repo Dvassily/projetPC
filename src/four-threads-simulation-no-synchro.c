@@ -85,6 +85,15 @@ void* four_threads_simulation(void* ptr_args)
     for (unsigned p = 0; p < field->person_count; ++p) {
 	responsability[get_zone(field->people[p].origin_x)].push_back(p);
     }
+
+#ifdef GUI
+    pthread_t display_thread;
+    display_thread_args display_t_args;
+    display_t_args.field = field;
+    display_t_args.renderer = renderer;
+    pthread_create(&display_thread, NULL, &display_thread_function, (void*) &display_t_args);
+#endif // GUI
+
     
     for (unsigned i = 0; i < NB_ZONE; ++i) {
 	t_args[i].field = field;
@@ -102,27 +111,11 @@ void* four_threads_simulation(void* ptr_args)
 	}
     }
 
-#ifdef GUI
-    while (! is_finished(field)) {
-	//dispatch(field, exiting, responsability);
-	SDL_Event e;
-
-	while (SDL_PollEvent(&e) != 0) {
-	    if( e.type == SDL_QUIT ) {
-		for (unsigned i = 0; i < NB_ZONE; ++i) {
-		    pthread_cancel(thread[i]);
-		}
-		return;
-	    }
-	}
-
-	SDL_SetRenderDrawColor(renderer, 0xFF, 0xFF, 0xFF, 0xFF);
-	SDL_RenderClear(renderer);
-	update(renderer, field);
-	SDL_RenderPresent(renderer);
-    }
-#endif
-
     for (unsigned i = 0; i < 4; ++i)
 	pthread_join(thread[i], NULL); // retval?
+
+#ifdef GUI
+    pthread_join(display_thread, NULL);
+#endif // GUI
+
 }

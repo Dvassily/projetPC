@@ -7,7 +7,7 @@ void* n_threads_simulation(void* ptr_args)
     unsigned person_id = ((thread_args*) ptr_args)->person_id;
 
     int i = 0;
-    while (! is_finished(field) && field->people[person_id].status == IN) {
+    while (field->people[person_id].status == IN) {
 	++i;
 
 	for (unsigned p = 0; p < field->person_count; ++p) {
@@ -61,6 +61,15 @@ void* n_threads_simulation(void* ptr_args)
     thread_args t_args[field->person_count];
     pthread_t thread[field->person_count];
 
+    #ifdef GUI
+    pthread_t display_thread;
+    display_thread_args display_t_args;
+    display_t_args.field = field;
+    display_t_args.renderer = renderer;
+    pthread_create(&display_thread, NULL, &display_thread_function, (void*) &display_t_args);
+    #endif // GUI
+
+    
     for (unsigned i = 0; i < field->person_count; ++i) {
 	t_args[i].person_id = i;
 	t_args[i].field = field;
@@ -73,28 +82,10 @@ void* n_threads_simulation(void* ptr_args)
 	}
     }
 
-#ifdef GUI
-    SDL_Event e;
-
-    while (! is_finished(field)) {
-	
-	while (SDL_PollEvent(&e) != 0) {
-	    if( e.type == SDL_QUIT ) {
-		for (unsigned i = 0; i < field->person_count; ++i) {
-		    pthread_cancel(thread[i]);
-		}
-		return;
-		
-	    }
-	}
-
-	SDL_SetRenderDrawColor(renderer, 0xFF, 0xFF, 0xFF, 0xFF);
-	SDL_RenderClear(renderer);
-	update(renderer, field);
-	SDL_RenderPresent(renderer);
-    }
-#endif
     for (unsigned i = 0; i < field->person_count; ++i)
 	pthread_join(thread[i], NULL); // retval?
 
+#ifdef GUI
+    pthread_join(display_thread, NULL);
+#endif // GUI
 }

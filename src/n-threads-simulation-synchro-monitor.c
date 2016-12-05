@@ -44,9 +44,10 @@ void* n_threads_simulation_synchro_monitor(void* ptr_args)
 {
     grid* field = ((thread_args*) ptr_args)->field;
     unsigned p = ((thread_args*) ptr_args)->person_id;
+    struct monitor* end_of_thread = ((thread_args*) ptr_args)->end_of_thread_monitor;
 
     int i = 0;
-    while (! is_finished(field) && field->people[p].status == IN) {
+    while (field->people[p].status == IN) {
 	++i;
 
 	if (field->people[p].status == IN && p == p) {
@@ -91,6 +92,8 @@ void* n_threads_simulation_synchro_monitor(void* ptr_args)
 	SDL_Delay(10);
 	#endif
     }
+
+    end_of_thread->release(end_of_thread);
     
     return NULL;
 }
@@ -110,9 +113,23 @@ void* n_threads_simulation_synchro_monitor(void* ptr_args)
 	for (unsigned j = 0; j < DEFAULT_GRID_HEIGHT; ++j)
 	    init_monitor(&field_monitor[i][j], 1);
 
+    struct monitor end_of_thread[field->person_count];
+    for (unsigned i = 0; i < field->person_count; i++) {
+	init_monitor(&end_of_thread[i], 0);
+    }
+    
+#ifdef GUI
+    pthread_t display_thread;
+    display_thread_args display_t_args;
+    display_t_args.field = field;
+    display_t_args.renderer = renderer;
+    pthread_create(&display_thread, NULL, &display_thread_function, (void*) &display_t_args);
+#endif // GUI
+
     for (unsigned i = 0; i < field->person_count; ++i) {
 	t_args[i].person_id = i;
 	t_args[i].field = field;
+	t_args[i].end_of_thread_monitor = &end_of_thread[i];
 	
 	thread_status = pthread_create(&thread[i], NULL,
 				       &n_threads_simulation_synchro_monitor, (void*) &t_args[i]);
@@ -122,29 +139,12 @@ void* n_threads_simulation_synchro_monitor(void* ptr_args)
 	    exit(EXIT_FAILURE);
 	}
     }
-
+    
+    for (unsigned i = 0; i < field->person_count; i++)
+	end_of_thread[i].get(&end_of_thread[i]);
+    
 #ifdef GUI
-    SDL_Event e;
-
-    while (! is_finished(field)) {
-	
-	while (SDL_PollEvent(&e) != 0) {
-	    if( e.type == SDL_QUIT ) {
-		for (unsigned i = 0; i < field->person_count; ++i) {
-		    pthread_cancel(thread[i]);
-		}
-		return;
-	    }
-	}
-
-	SDL_SetRenderDrawColor(renderer, 0xFF, 0xFF, 0xFF, 0xFF);
-	SDL_RenderClear(renderer);
-	update(renderer, field);
-	SDL_RenderPresent(renderer);
-    }
-
-#endif
-    for (unsigned i = 0; i < field->person_count; ++i)
-	pthread_join(thread[i], NULL); // retval?
+    pthread_join(display_thread, NULL);
+#endif // GUI
 
 }

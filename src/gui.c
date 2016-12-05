@@ -9,12 +9,18 @@
 
 void* display_thread_function(void* ptr_args) {
     grid* field = ((display_thread_args*) ptr_args)->field;
-    SDL_Renderer* renderer = ((display_thread_args*) ptr_args)->renderer;
+    //SDL_Renderer* renderer = ((display_thread_args*) ptr_args)->renderer;
+    SDL_Window* window = NULL;
+    SDL_Renderer* renderer = NULL;
+    
+    if (! init(&window, &renderer)) {
+	printf("GUI initialization failed.\n");
+	exit(EXIT_FAILURE);
+    }
+
     
     while (! is_finished(field)) {
-	//dispatch(field, exiting, responsability);
 	SDL_Event e;
-
 	/*
 	while (SDL_PollEvent(&e) != 0) {
 	    if( e.type == SDL_QUIT ) {

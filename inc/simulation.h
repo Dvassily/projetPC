@@ -61,7 +61,10 @@ typedef struct {
     struct monitor* incoming_monitor;
 
     // Semaphore which prevent the main thread to progress until the four threads are not finished
-    sem_t* end_of_thread;
+    sem_t* end_of_thread_lock;
+
+    // Monitor which prevent the main thread to progress until the four threads are not finished
+    monitor* end_of_thread_monitor;
 
 #ifdef GUI
       SDL_Window* window;
