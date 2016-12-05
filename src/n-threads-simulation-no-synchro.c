@@ -76,17 +76,18 @@ void* n_threads_simulation(void* ptr_args)
 #ifdef GUI
     SDL_Event e;
 
-    while (SDL_PollEvent(&e) != 0) {
-	if( e.type == SDL_QUIT ) {
-	    for (unsigned i = 0; i < field->person_count; ++i) {
-		pthread_cancel(thread[i]);
-	    }
-	    return;
+    while (! is_finished(field)) {
+	
+	while (SDL_PollEvent(&e) != 0) {
+	    if( e.type == SDL_QUIT ) {
+		for (unsigned i = 0; i < field->person_count; ++i) {
+		    pthread_cancel(thread[i]);
+		}
+		return;
 		
+	    }
 	}
-    }
 
-    while (! is_finished(field)) {	
 	SDL_SetRenderDrawColor(renderer, 0xFF, 0xFF, 0xFF, 0xFF);
 	SDL_RenderClear(renderer);
 	update(renderer, field);

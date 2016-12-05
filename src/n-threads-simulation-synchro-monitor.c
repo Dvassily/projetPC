@@ -126,16 +126,17 @@ void* n_threads_simulation_synchro_monitor(void* ptr_args)
 #ifdef GUI
     SDL_Event e;
 
-    while (SDL_PollEvent(&e) != 0) {
-	if( e.type == SDL_QUIT ) {
-	    for (unsigned i = 0; i < field->person_count; ++i) {
-		pthread_cancel(thread[i]);
+    while (! is_finished(field)) {
+	
+	while (SDL_PollEvent(&e) != 0) {
+	    if( e.type == SDL_QUIT ) {
+		for (unsigned i = 0; i < field->person_count; ++i) {
+		    pthread_cancel(thread[i]);
+		}
+		return;
 	    }
-	    return;
 	}
-    }
 
-    while (! is_finished(field)) {	
 	SDL_SetRenderDrawColor(renderer, 0xFF, 0xFF, 0xFF, 0xFF);
 	SDL_RenderClear(renderer);
 	update(renderer, field);
