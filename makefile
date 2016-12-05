@@ -2,12 +2,14 @@
 
 EXE=executable.exe
 CC=g++ -std=c++11
-FLAGS=-Wall -pthread -lm -g -lSDL2  #-DGUI
+FLAGS=-Wall -pthread -lm -g -lSDL2  -DGUI
 DSRC=src/
 DOBJ=obj/
 DINC=inc/
 
-OBJ=$(DOBJ)field.o $(DOBJ)main.o $(DOBJ)simulation.o $(DOBJ)gui.o $(DOBJ)four-threads-simulation-no-synchro.o $(DOBJ)n-threads-simulation-no-synchro.o $(DOBJ)four-threads-simulation-synchro-sem.o $(DOBJ)n-threads-simulation-synchro-sem.o
+#OBJ=$(DOBJ)field.o $(DOBJ)main.o $(DOBJ)simulation.o $(DOBJ)gui.o $(DOBJ)four-threads-simulation-no-synchro.o $(DOBJ)n-threads-simulation-no-synchro.o $(DOBJ)four-threads-simulation-synchro-sem.o $(DOBJ)n-threads-simulation-synchro-sem.o
+
+OBJ=$(DOBJ)field.o $(DOBJ)main.o $(DOBJ)simulation.o $(DOBJ)gui.o $(DOBJ)four-threads-simulation-no-synchro.o $(DOBJ)n-threads-simulation-no-synchro.o $(DOBJ)n-threads-simulation-synchro-sem.o
 
 $(EXE):$(OBJ)
 	$(CC) $(FLAGS) $(OBJ) -o $(EXE)

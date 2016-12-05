@@ -51,8 +51,9 @@ typedef struct {
     // Semaphore to lock the modification of the 'responsability' list of the current thread
     sem_t* responsability_lock;
 
-    // List of the index of persons who are pending for being reassigned to another thread
-    std::list<int> *exiting;
+    // List of the index of persons who are pending for being reassigned to current thread
+    std::list<int> *incoming;
+
     
     // Semaphore to lock the modification of the 'exiting' list of the current thread
     sem_t* exiting_lock;
