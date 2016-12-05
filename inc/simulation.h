@@ -20,7 +20,7 @@ typedef enum {
 } direction;
 
 typedef enum {
-    TOP_LEFT, TOP_RIGHT, BOTTOM_LEFT, BOTTOM_RIGHT
+    LEFT, CENTER_LEFT, CENTER_RIGHT, RIGHT
 } field_zone;
 
 typedef enum {
@@ -54,9 +54,8 @@ typedef struct {
     // List of the index of persons who are pending for being reassigned to current thread
     std::list<int> *incoming;
 
-    
-    // Semaphore to lock the modification of the 'exiting' list of the current thread
-    sem_t* exiting_lock;
+        // List of the index of persons who are pending for being reassigned to current thread
+    sem_t* incoming_lock;
 
     // Semaphore which prevent the main thread to progress until the four threads are not finished
     sem_t* end_of_thread;
@@ -76,6 +75,7 @@ double distance_to_azimuth(int x, int y);
 int is_finished(grid * field);
 bool can_move(grid * field, struct person person, direction d);
 void move_person(grid * field, unsigned p, direction d);
+direction choose_direction(grid * field, int p);
 
 #ifdef GUI
 // step 1

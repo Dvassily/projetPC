@@ -121,27 +121,25 @@ void one_thread_simulation(grid* field
                            #endif // GUI
 			   )
 {    
-    int i = 0;
     while (! is_finished(field)) {
-	++i;
-
 	for (unsigned p = 0; p < field->person_count; ++p) {
 	    if (field->people[p].status == IN) {
-		direction dir = choose_direction(field, p);
-		
-		if (dir == UNKNOWN_DIR)
-		    continue;
-		
-		move_person(field, p, dir);
-		
-		if (field->people[p].origin_x == 0) {
-		    field->people[p].status = OUT;
-		    delete_person(field, p);
+		direction dir = UNKNOWN_DIR;
+
+		if ((dir = choose_direction(field, p)) != UNKNOWN_DIR) {
+		    move_person(field, p, dir);
+		    
+		    if (field->people[p].origin_x == 0) {
+			field->people[p].status = OUT;
+			delete_person(field, p);
+		    }
 		}
 	    }
 	}
 
-	#ifdef GUI
+#ifdef GUI
+	SDL_Delay(10);
+	
 	while (SDL_PollEvent(&e) != 0)
 	    if( e.type == SDL_QUIT )
 		return;
@@ -171,7 +169,7 @@ void start_simulation(grid* field, scenario sc, step step
 	if (sc == ONE_THREAD) {
 	    START_ONE_THREAD_SIMULATION(field, renderer);
 	} else if (sc == FOUR_THREADS) {
-	    //START_FOUR_THREADS_SIMULATION_SYNCHRO_SEM(field, renderer);
+	    START_FOUR_THREADS_SIMULATION_SYNCHRO_SEM(field, renderer);
 	} else if (sc == N_THREADS) {
 	    START_N_THREADS_SIMULATION_SYNCHRO_SEM(field, renderer);
 	} else {
