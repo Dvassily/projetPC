@@ -6,13 +6,13 @@
 #include "simulation.h"
 #include "field.h"
 
-void dispatch_synchro_sem(struct grid* field, std::list<int> exiting[], std::list<int> responsability[], sem_t exiting_lock[4]);
-void* four_threads_simulation_synchro_sem(void* ptr_args);
+void dispatch_synchro_monitor(struct grid* field, std::list<int> exiting[], std::list<int> responsability[]);
+void* four_threads_simulation_synchro_monitor(void* ptr_args);
 
 #ifdef GUI
-void start_four_threads_simulation_synchro_sem(grid* field, SDL_Renderer* renderer);
+void start_four_threads_simulation_synchro_monitor(grid* field, SDL_Renderer* renderer);
 #else
-void start_four_threads_simulation_synchro_sem(grid* field);
+void start_four_threads_simulation_synchro_monitor(grid* field);
 #endif // GUI
 
 

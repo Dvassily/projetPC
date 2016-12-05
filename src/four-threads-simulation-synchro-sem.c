@@ -1,14 +1,10 @@
 #include <pthread.h>
 #include "../inc/four-threads-simulation-synchro-monitor.h"
-#include "../inc/monitor.h"
 
-struct monitor monitoring;
-
-
-void dispatch_synchro_monitor(grid* field, std::list<int> exiting[], std::list<int> responsability[], sem_t exiting_lock[4]) {
+void dispatch_synchro_sem(grid* field, std::list<int> exiting[], std::list<int> responsability[], sem_t exiting_lock[4]) {
     std::list<int>::iterator iter;
     for (unsigned i = 0; i < 4; ++i) {
-	monitoring.get(&monitoring);
+	sem_wait(&exiting_lock[i]);
 	for (iter = exiting[i].begin(); iter != exiting[i].end(); ++iter) {
 	    int index = *iter;
 	    person p = field->people[index];
@@ -18,18 +14,19 @@ void dispatch_synchro_monitor(grid* field, std::list<int> exiting[], std::list<i
 	    responsability[zone].push_front(index);
 	    exiting[i].erase(iter++);
 	}
-	monitoring.release(&monitoring);
+	sem_post(&exiting_lock[i]);
     }
 }
 
 
-void* four_threads_simulation_synchro_monitor(void* ptr_args)
+void* four_threads_simulation_synchro_sem(void* ptr_args)
 {
     field_zone zone = ((thread_args*) ptr_args)->zone;
     grid* field = ((thread_args*) ptr_args)->field;
     std::list<int>* responsability = ((thread_args*) ptr_args)->responsability;
     std::list<int>* exiting = ((thread_args*) ptr_args)->exiting;
-    init_monitor(&monitoring);
+    sem_t* exiting_lock = ((thread_args*) ptr_args)->exiting_lock;
+    sem_t* end_of_thread = ((thread_args*) ptr_args)->end_of_thread;
     std::list<int>::iterator iter;
 
     int xmin, xmax, ymin, ymax;
@@ -100,9 +97,9 @@ void* four_threads_simulation_synchro_monitor(void* ptr_args)
 			field->people[p].origin_y < ymin || field->people[p].origin_y > ymax) {
 			responsability->erase(iter++);
 
-			monitoring.get(&monitoring);
+			sem_wait(exiting_lock);
 			  exiting->push_front(p);
-			monitoring.release(&monitoring);
+			sem_post(exiting_lock);
 		    }
 
 		}
@@ -116,15 +113,15 @@ void* four_threads_simulation_synchro_monitor(void* ptr_args)
 	#endif
     }
 
-    monitoring.release(&monitoring);
+    sem_post(end_of_thread);
 
     return NULL;
 }
 
 #ifdef GUI
-void start_four_threads_simulation_synchro_monitor(grid* field, SDL_Renderer* renderer)
+void start_four_threads_simulation_synchro_sem(grid* field, SDL_Renderer* renderer)
 #else
-void start_four_threads_simulation_synchro_monitor(grid* field)
+void start_four_threads_simulation_synchro_sem(grid* field)
 #endif // GUI
 {
     int thread_status = 0;
@@ -137,7 +134,10 @@ void start_four_threads_simulation_synchro_monitor(grid* field)
     sem_t exiting_lock[4];
     sem_t end_of_thread[4];
 
-    monitoring.get(&monitoring);
+    for (unsigned i = 0; i < 4; i++) {
+	sem_init(&exiting_lock[i], 0, 1);
+	sem_init(&end_of_thread[i], 0, 1);
+    }
 
     for (unsigned i = 0; i < 4; ++i) {
 	t_args[i].field = field;
@@ -157,7 +157,7 @@ void start_four_threads_simulation_synchro_monitor(grid* field)
     }
 
     while (! is_finished(field)) {
-	dispatch_synchro_monitor(field, exiting, responsability, exiting_lock);
+	dispatch_synchro_sem(field, exiting, responsability, exiting_lock);
 #ifdef GUI
 	SDL_Event e;
 
@@ -176,4 +176,7 @@ void start_four_threads_simulation_synchro_monitor(grid* field)
 	SDL_RenderPresent(renderer);
 #endif
     }
+
+    for (unsigned i = 0; i < 4; i++)
+	sem_wait(&end_of_thread[i]);
 }
