@@ -1,5 +1,8 @@
 #include <pthread.h>
+#include "../inc/n-threads-simulation-synchro-sem.h"
 #include "../inc/four-threads-simulation-no-synchro.h"
+
+//sem_t field_lock[DEFAULT_GRID_WIDTH][DEFAULT_GRID_HEIGHT];
 
 void* four_threads_simulation_synchro_sem(void* ptr_args)
 {
@@ -18,11 +21,15 @@ void* four_threads_simulation_synchro_sem(void* ptr_args)
 	    int p = *iter;
 	    
 	    if (field->people[p].status == IN) {
+		int old_x = field->people[p].origin_x;
+		int old_y = field->people[p].origin_y;
 		direction dir = UNKNOWN_DIR;
-
+	    
+		move_prologue(old_x, old_y);
 		if ((dir = choose_direction(field, p)) != UNKNOWN_DIR) {		
 
 		    move_person(field, p, dir);
+		    move_epilogue(old_x, old_y);
 		    
 		    if (field->people[p].origin_x == 0) {
 			field->people[p].status = OUT;
@@ -36,8 +43,10 @@ void* four_threads_simulation_synchro_sem(void* ptr_args)
 			    sem_post(&incoming_lock[zone - 1]);
 			}
 		    }
+		} else {
+		    move_epilogue(old_x, old_y);
 		}
-	    }
+	    } 
 	}
 
 	if (zone != RIGHT) {
@@ -50,7 +59,7 @@ void* four_threads_simulation_synchro_sem(void* ptr_args)
 	}
 	
 	#ifdef GUI
-	  SDL_Delay(25);
+	  SDL_Delay(10);
 	#endif
     }
     
@@ -74,6 +83,10 @@ void* four_threads_simulation_synchro_sem(void* ptr_args)
     sem_t incoming_lock[NB_ZONE - 1];
     for (unsigned i = 0; i < NB_ZONE - 1; ++i)
 	sem_init(&incoming_lock[i], 0, 1);
+
+    for (unsigned i = 0; i < DEFAULT_GRID_WIDTH; ++i)
+	for (unsigned j = 0; j < DEFAULT_GRID_HEIGHT; ++j)
+	    sem_init(&field_lock[i][j], 0, 1);
     
     for (unsigned p = 0; p < field->person_count; ++p) {
 	responsability[get_zone(field->people[p].origin_x)].push_back(p);

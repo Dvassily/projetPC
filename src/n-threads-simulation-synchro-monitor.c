@@ -1,6 +1,7 @@
 #include <pthread.h>
 #include <fcntl.h>
 #include "../inc/monitor.h"
+#include "../inc/n-threads-simulation-synchro-sem.h"
 #include "../inc/n-threads-simulation-no-synchro.h"
 
 #define AREA_LOCK 4;
@@ -108,7 +109,6 @@ void* n_threads_simulation_synchro_monitor(void* ptr_args)
     for (unsigned i = 0; i < DEFAULT_GRID_WIDTH; ++i)
 	for (unsigned j = 0; j < DEFAULT_GRID_HEIGHT; ++j)
 	    init_monitor(&field_monitor[i][j], 1);
-	    //sem_init(&field_lock[i][j], 0, 1);
 
     for (unsigned i = 0; i < field->person_count; ++i) {
 	t_args[i].person_id = i;

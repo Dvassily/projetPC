@@ -1,4 +1,5 @@
 #include <pthread.h>
+#include "../inc/n-threads-simulation-synchro-monitor.h"
 #include "../inc/four-threads-simulation-no-synchro.h"
 #include "../inc/monitor.h"
 
@@ -22,10 +23,15 @@ void* four_threads_simulation_synchro_monitor(void* ptr_args)
 	    
 	    if (field->people[p].status == IN) {
 		direction dir = UNKNOWN_DIR;
+		int old_x = field->people[p].origin_x;
+		int old_y = field->people[p].origin_y;
+		
+		move_prologue_monitor(old_x, old_y);
 
 		if ((dir = choose_direction(field, p)) != UNKNOWN_DIR) {		
 
 		    move_person(field, p, dir);
+		    move_epilogue_monitor(old_x, old_y);
 		    
 		    if (field->people[p].origin_x == 0) {
 			field->people[p].status = OUT;
@@ -40,6 +46,8 @@ void* four_threads_simulation_synchro_monitor(void* ptr_args)
 			    //sem_post(&incoming_lock[zone - 1]);
 			}
 		    }
+		} else {
+		    move_epilogue_monitor(old_x, old_y);
 		}
 	    }
 	}
@@ -75,6 +83,11 @@ void* four_threads_simulation_synchro_monitor(void* ptr_args)
 
     pthread_t thread[NB_ZONE];
     thread_args t_args[NB_ZONE];
+
+    for (unsigned i = 0; i < DEFAULT_GRID_WIDTH; ++i)
+	for (unsigned j = 0; j < DEFAULT_GRID_HEIGHT; ++j)
+	    init_monitor(&field_monitor[i][j], 1);
+    
     std::list<int> responsability[NB_ZONE];
 
     std::list<int> incoming[NB_ZONE - 1];
