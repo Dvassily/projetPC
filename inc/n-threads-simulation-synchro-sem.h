@@ -1,7 +1,8 @@
 #ifndef __N_THREAD_SIMULATION_SYNCHRO_SEM__
 #define __N_THREAD_SIMULATION_SYNCHRO_SEM__
-
+#ifdef GUI
 #include <SDL2/SDL.h>
+#endif
 #include "simulation.h"
 #include "field.h"
 

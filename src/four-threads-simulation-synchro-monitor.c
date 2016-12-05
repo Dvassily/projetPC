@@ -1,18 +1,21 @@
 #include <pthread.h>
 #include "../inc/four-threads-simulation-no-synchro.h"
+#include "../inc/monitor.h"
 
-void* four_threads_simulation_synchro_sem(void* ptr_args)
+//monitor end_of_thread[NB_ZONE];
+
+void* four_threads_simulation_synchro_monitor(void* ptr_args)
 {
     field_zone zone = ((thread_args*) ptr_args)->zone;
     grid* field = ((thread_args*) ptr_args)->field;
     std::list<int>* responsability = ((thread_args*) ptr_args)->responsability;
     std::list<int>* incoming = ((thread_args*) ptr_args)->incoming;
-    sem_t* incoming_lock = ((thread_args*) ptr_args)->incoming_lock;
+    struct monitor* incoming_monitor = ((thread_args*) ptr_args)->incoming_monitor;
     std::list<int>::iterator iter;
     
     int xmin = get_xmin(zone);
     int xmax = get_xmax(zone);
-    
+
     while (! is_finished(field)) {
 	for (iter = responsability[zone].begin(); iter != responsability[zone].end(); ++iter) {
 	    int p = *iter;
@@ -30,10 +33,11 @@ void* four_threads_simulation_synchro_sem(void* ptr_args)
 		    } else {
 			if (field->people[p].origin_x < xmin || field->people[p].origin_x > xmax) {
 			    responsability[zone].erase(iter++);
-
-			    sem_wait(&incoming_lock[zone - 1]);
+			    //sem_wait(&incoming_lock[zone - 1]);
+			    incoming_monitor[zone - 1].get(&incoming_monitor[zone - 1]);
 			      incoming[zone - 1].push_back(p);
-			    sem_post(&incoming_lock[zone - 1]);
+			    incoming_monitor[zone - 1].release(&incoming_monitor[zone - 1]);
+			    //sem_post(&incoming_lock[zone - 1]);
 			}
 		    }
 		}
@@ -41,62 +45,63 @@ void* four_threads_simulation_synchro_sem(void* ptr_args)
 	}
 
 	if (zone != RIGHT) {
-	    sem_wait(&incoming_lock[zone]);
+	    incoming_monitor[zone].get(&incoming_monitor[zone]);
 	    while (! incoming[zone].empty()) {
 		responsability[zone].push_back(incoming[zone].front());
 		incoming[zone].pop_front();
 	    }
-	    sem_post(&incoming_lock[zone]);
+	    incoming_monitor[zone].release(&incoming_monitor[zone]);
 	}
 	
 	#ifdef GUI
-	  SDL_Delay(25);
+	  SDL_Delay(10);
 	#endif
     }
-    
+    /*
+    for (unsigned i = 0; i < NB_ZONE; i++) {
+	end_of_thread[i].release(&end_of_thread[i]);
+    }
+    */
     return NULL;
 }
 
 #ifdef GUI
-  void start_four_threads_simulation_synchro_sem(grid* field, SDL_Renderer* renderer)
+  void start_four_threads_simulation_synchro_monitor(grid* field, SDL_Renderer* renderer)
 #else
-  void start_four_threads_simulation_synchro_sem(grid* field)
+  void start_four_threads_simulation_synchro_monitor(grid* field)
 #endif // GUI
 {
     int thread_status = 0;
 
     pthread_t thread[NB_ZONE];
-    
     thread_args t_args[NB_ZONE];
     std::list<int> responsability[NB_ZONE];
 
     std::list<int> incoming[NB_ZONE - 1];
-    sem_t incoming_lock[NB_ZONE - 1];
-    for (unsigned i = 0; i < NB_ZONE - 1; ++i)
-	sem_init(&incoming_lock[i], 0, 1);
+
+    struct monitor incoming_monitor[3];
+    for (unsigned i = 0; i < NB_ZONE - 1; ++i) {
+	init_monitor(&incoming_monitor[i], 1);
+    }
     
     for (unsigned p = 0; p < field->person_count; ++p) {
 	responsability[get_zone(field->people[p].origin_x)].push_back(p);
     }
+
     /*
-#ifdef GUI
-    pthread_t display_thread;
-    display_thread_args display_t_args;
-    display_t_args.field = field;
-    display_t_args.renderer = renderer;
-    pthread_create(&display_thread, NULL, &display_thread_function, (void*) &display_t_args);
-#endif // GUI
-    */    
+    for (unsigned i = 0; i < NB_ZONE; i++) {
+	init_monitor(&end_of_thread[i], 0);
+    }
+    */
     for (unsigned i = 0; i < NB_ZONE; ++i) {
 	t_args[i].field = field;
 	t_args[i].zone = (::field_zone) i;
 	t_args[i].incoming = incoming;
 	t_args[i].responsability = responsability;
-	t_args[i].incoming_lock = incoming_lock;
-	
+	t_args[i].incoming_monitor = incoming_monitor;
 
 	thread_status = pthread_create(&thread[i], NULL,
-				       &four_threads_simulation_synchro_sem, (void*) &t_args[i]);
+				       &four_threads_simulation_synchro_monitor, (void*) &t_args[i]);
 
 	if (thread_status) {
 	    fprintf(stderr, "Error creating thread\n");
@@ -104,7 +109,6 @@ void* four_threads_simulation_synchro_sem(void* ptr_args)
 	}
     }
 
-    
 #ifdef GUI
     while (! is_finished(field)) {
 	//dispatch(field, exiting, responsability);
@@ -126,6 +130,11 @@ void* four_threads_simulation_synchro_sem(void* ptr_args)
     }
 #endif
 
+    
     for (unsigned i = 0; i < 4; ++i)
 	pthread_join(thread[i], NULL); // retval?
+
+    //for (unsigned i = 0; i < NB_ZONE; i++) {
+    //end_of_thread[i].get(&end_of_thread[i]);
+    //}
 }

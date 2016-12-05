@@ -1,4 +1,4 @@
-#ifndef __CONSTANTS_H__
+k#ifndef __CONSTANTS_H__
 #define __CONSTANTS_H__
 
 #define DEFAULT_GRID_WIDTH              512

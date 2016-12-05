@@ -19,7 +19,7 @@ int main (int argc, char *argv[])
     step step = UNKNOWN_STEP;
     clock_t timecpu_before = 0;
     time_t timeuser_before = 0;
-    
+
     // Command line parsing
     // TODO :
     // - detect incorrect parameter value (ex : string à la place de int)
@@ -52,7 +52,7 @@ int main (int argc, char *argv[])
 
     if (! population) {
 	fprintf(stderr, "Missing parameter -p\n");
-	exit(EXIT_FAILURE);	
+	exit(EXIT_FAILURE);
     }
 
     if (step == UNKNOWN_STEP) {
@@ -67,37 +67,37 @@ int main (int argc, char *argv[])
 #ifdef GUI
     SDL_Window* window = NULL;
     SDL_Renderer* renderer = NULL;
-    
+
     if (! init(&window, &renderer)) {
 	printf("GUI initialization failed.\n");
 	exit(EXIT_FAILURE);
     }
 #endif
-    
+
     if (print_duration) {
 	timeuser_before = time(NULL);
 	timecpu_before = clock();
     }
-    
+
     start_simulation(&field, scenario, step
 #ifdef GUI
 		     , renderer
 #endif // GUI
 		     );
-    
+
     if (print_duration) {
 	printf("Execution time : \n");
-	printf("CPU : %f\n", (float) (clock() - timecpu_before) / CLOCKS_PER_SEC);
-	printf("User : %f\n", (float) (time(NULL) - timeuser_before));
+	printf("CPU : %f ms\n", (float) (clock() - timecpu_before) * 1000 / CLOCKS_PER_SEC);
+	printf("User : %f ms\n", (float) (time(NULL) - timeuser_before) * 1000);
     }
 
-    
+
 #ifdef GUI
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
     window = NULL;
     renderer = NULL;
-    
+
     SDL_Quit();
 #endif
 

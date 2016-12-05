@@ -8,6 +8,10 @@
 #include "../inc/field.h"
 #include "../inc/four-threads-simulation-no-synchro.h"
 #include "../inc/n-threads-simulation-no-synchro.h"
+#include "../inc/four-threads-simulation-synchro-sem.h"
+#include "../inc/n-threads-simulation-synchro-sem.h"
+#include "../inc/four-threads-simulation-synchro-monitor.h"
+#include "../inc/n-threads-simulation-synchro-monitor.h"
 
 #ifdef GUI
   #include "../inc/gui.h"
@@ -172,6 +176,17 @@ void start_simulation(grid* field, scenario sc, step step
 	    START_FOUR_THREADS_SIMULATION_SYNCHRO_SEM(field, renderer);
 	} else if (sc == N_THREADS) {
 	    START_N_THREADS_SIMULATION_SYNCHRO_SEM(field, renderer);
+	} else {
+	    fprintf(stderr, "Unknown scenario : %d\n", sc);
+	    exit(EXIT_FAILURE);
+	}
+    } else if (step == STEP_THREE) {
+	if (sc == ONE_THREAD) {
+	    START_ONE_THREAD_SIMULATION(field, renderer);
+	} else if (sc == FOUR_THREADS) {
+	    START_FOUR_THREADS_SIMULATION_SYNCHRO_MONITOR(field, renderer);
+	} else if (sc == N_THREADS) {
+	    START_N_THREADS_SIMULATION_SYNCHRO_MONITOR(field, renderer)	\
 	} else {
 	    fprintf(stderr, "Unknown scenario : %d\n", sc);
 	    exit(EXIT_FAILURE);

@@ -1,43 +1,45 @@
 #include <pthread.h>
 #include <fcntl.h>
+#include "../inc/monitor.h"
 #include "../inc/n-threads-simulation-no-synchro.h"
 
 #define AREA_LOCK 4;
 
-sem_t field_lock[DEFAULT_GRID_WIDTH][DEFAULT_GRID_HEIGHT];
+//sem_t field_lock[DEFAULT_GRID_WIDTH][DEFAULT_GRID_HEIGHT];
+struct monitor field_monitor[DEFAULT_GRID_WIDTH][DEFAULT_GRID_HEIGHT];
 
-void move_prologue(int x, int y) {
+void move_prologue_monitor(int x, int y) {
     for (int i = x + 3;  i >= x; --i) {
-	sem_wait(&field_lock[i][y - 1]);
-	sem_wait(&field_lock[i][y + 4]);
+	field_monitor[i][y - 1].get(&field_monitor[i][y - 1]);
+	field_monitor[i][y + 4].get(&field_monitor[i][y + 4]);
     }
 
     for (int i = y - 1; i <= y + 4; ++i) {
-	sem_wait(&field_lock[x - 1][i]);	
+	field_monitor[x - 1][i].get(&field_monitor[x - 1][i]);
     }
 }
 
-void move_epilogue(int x, int y) {
+void move_epilogue_monitor(int x, int y) {
     for (int i = x + 3;  i >= x; --i) {
-	sem_post(&field_lock[i][y - 1]);
-	sem_post(&field_lock[i][y + 4]);
+	field_monitor[i][y - 1].release(&field_monitor[i][y - 1]);
+	field_monitor[i][y + 4].release(&field_monitor[i][y + 4]);
     }
 
     
     for (int i = y - 1; i <= y + 4; ++i) {
-	sem_post(&field_lock[x - 1][i]);	
+	field_monitor[x - 1][i].release(&field_monitor[x - 1][i]);
     }
 }
 
-void unlock_exit(person p) {
+void unlock_exit_monitor(person p) {
     for (int i = 0; i < 4; ++i) {
 	for (int j = 0; j < 4; ++j) {
-	    sem_post(&field_lock[p.origin_x + i][p.origin_y + j]);
+	    field_monitor[p.origin_x + i][p.origin_y + j].release(&field_monitor[p.origin_x + i][p.origin_y + j]);
 	}
     }
 }
 
-void* n_threads_simulation_synchro_sem(void* ptr_args)
+void* n_threads_simulation_synchro_monitor(void* ptr_args)
 {
     grid* field = ((thread_args*) ptr_args)->field;
     unsigned p = ((thread_args*) ptr_args)->person_id;
@@ -54,7 +56,7 @@ void* n_threads_simulation_synchro_sem(void* ptr_args)
 	    int old_x = field->people[p].origin_x;
 	    int old_y = field->people[p].origin_y;
 
-	    move_prologue(old_x, old_y);
+	    move_prologue_monitor(old_x, old_y);
 	    for (int m = 0; m < NB_MOVES; ++m) {
 		if (can_move(field, field->people[p], (::direction) m)) {
 		    int x = field->people[p].origin_x + moves[m].x;
@@ -70,7 +72,7 @@ void* n_threads_simulation_synchro_sem(void* ptr_args)
 	    }
 
 	    if (dir == UNKNOWN_DIR) {
-		move_epilogue(old_x, old_y);
+		move_epilogue_monitor(old_x, old_y);
 		continue;
 	    }
 
@@ -81,7 +83,7 @@ void* n_threads_simulation_synchro_sem(void* ptr_args)
 		delete_person(field, p);
 	    }
 
-	    move_epilogue(old_x, old_y);
+	    move_epilogue_monitor(old_x, old_y);
 	}
 
 	#ifdef GUI
@@ -93,9 +95,9 @@ void* n_threads_simulation_synchro_sem(void* ptr_args)
 }
 
 #ifdef GUI
-  void start_n_threads_simulation_synchro_sem(grid* field, SDL_Renderer* renderer)
+  void start_n_threads_simulation_synchro_monitor(grid* field, SDL_Renderer* renderer)
 #else
-  void start_n_threads_simulation_synchro_sem(grid* field)
+  void start_n_threads_simulation_synchro_monitor(grid* field)
 #endif // GUI
 {
     int thread_status = 0;
@@ -105,14 +107,15 @@ void* n_threads_simulation_synchro_sem(void* ptr_args)
 
     for (unsigned i = 0; i < DEFAULT_GRID_WIDTH; ++i)
 	for (unsigned j = 0; j < DEFAULT_GRID_HEIGHT; ++j)
-	    sem_init(&field_lock[i][j], 0, 1);
+	    init_monitor(&field_monitor[i][j], 1);
+	    //sem_init(&field_lock[i][j], 0, 1);
 
     for (unsigned i = 0; i < field->person_count; ++i) {
 	t_args[i].person_id = i;
 	t_args[i].field = field;
 	
 	thread_status = pthread_create(&thread[i], NULL,
-				       &n_threads_simulation_synchro_sem, (void*) &t_args[i]);
+				       &n_threads_simulation_synchro_monitor, (void*) &t_args[i]);
 	    
 	if (thread_status) {
 	    fprintf(stderr, "Error creating thread\n");
